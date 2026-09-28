@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 public class PotionStatusModule extends AbstractModule {
 
-    //public final Setting showInInventory;
+    private final Setting centeredInventory;
     private final Setting showWhileTying;
     private final Setting showEffectName;
     private final Setting colorOptionsLabel;
@@ -37,6 +37,7 @@ public class PotionStatusModule extends AbstractModule {
 
         new Setting(this, "label").setValue("General Options");
         {
+            this.centeredInventory = new Setting(this, "Centered Inventory").setValue(false);
             this.showWhileTying = new Setting(this, "Show While Typing").setValue(true);
             this.showEffectName = new Setting(this, "Effect Name").setValue(true);
             //this.showInInventory = new Setting(this, "Show Potion info in inventory").setValue(false);
@@ -56,6 +57,10 @@ public class PotionStatusModule extends AbstractModule {
         this.addEvent(TickEvent.class, this::onTick);
         this.addEvent(RenderPreviewEvent.class, this::renderPreview);
         this.addEvent(GuiDrawEvent.class, this::renderReal);
+    }
+
+    public boolean isCenteredInventory() {
+        return Boolean.TRUE.equals(this.centeredInventory.getValue());
     }
 
     private void onTick(TickEvent cBTickEvent) {

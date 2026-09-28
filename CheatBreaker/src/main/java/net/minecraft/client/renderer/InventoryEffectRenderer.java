@@ -28,9 +28,13 @@ public abstract class InventoryEffectRenderer extends GuiContainer
     {
         super.initGui();
 
+        this.field_147045_u = false;
         if (!this.mc.thePlayer.getActivePotionEffects().isEmpty() && (boolean) CheatBreaker.getInstance().getGlobalSettings().showPotionInfo.getValue())
         {
-            this.field_147003_i = 160 + (this.width - this.field_146999_f - 200) / 2;
+            if (!CheatBreaker.getInstance().getModuleManager().potionStatus.isCenteredInventory())
+            {
+                this.field_147003_i = 160 + (this.width - this.field_146999_f - 200) / 2;
+            }
             this.field_147045_u = true;
         }
     }
