@@ -1368,7 +1368,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
             while (var4.hasNext()) {
                 var5 = (String) var4.next();
-                var2.removePlayerFromTeam(var5, var3);
+                // A delayed removal for an old team must not remove a newer membership.
+                if (var3 != null && var2.getPlayersTeam(var5) == var3) {
+                    var2.removePlayerFromTeam(var5, var3);
+                }
             }
         }
 

@@ -26,6 +26,7 @@ import org.lwjgl.opengl.GL11;
 public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
 {
     private static final Logger logger = LogManager.getLogger();
+    private static final ResourceLocation serverSelectionButtons = new ResourceLocation("textures/gui/resource_packs.png");
     private static final ThreadPoolExecutor field_148302_b = new ScheduledThreadPoolExecutor(5, (new ThreadFactoryBuilder()).setNameFormat("Server Pinger #%d").setDaemon(true).build());
     private final GuiMultiplayer field_148303_c;
     private final Minecraft field_148300_d;
@@ -179,6 +180,15 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
         {
             this.field_148303_c.func_146793_a(var18);
         }
+
+        if (this.field_148300_d.gameSettings.touchscreen || p_148279_9_)
+        {
+            this.field_148300_d.getTextureManager().bindTexture(serverSelectionButtons);
+            Gui.drawRect(p_148279_2_, p_148279_3_, p_148279_2_ + 32, p_148279_3_ + 32, -1601138544);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            Gui.func_146110_a(p_148279_2_, p_148279_3_, 0.0F, var20 < 32 ? 32.0F : 0.0F,
+                    32, 32, 256.0F, 256.0F);
+        }
     }
 
     private void func_148297_b()
@@ -237,6 +247,12 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
         }
 
         this.field_148298_f = Minecraft.getSystemTime();
+        if (p_148278_4_ == 0 && p_148278_5_ >= 0 && p_148278_5_ < 32
+                && p_148278_6_ >= 0 && p_148278_6_ < 32)
+        {
+            this.field_148303_c.func_146796_h();
+            return true;
+        }
         return false;
     }
 

@@ -1,5 +1,6 @@
 package net.minecraft.client.gui;
 
+import com.cheatbreaker.client.util.input.ImeInput;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ChatAllowedCharacters;
 import org.lwjgl.opengl.GL11;
@@ -600,6 +601,7 @@ public class GuiTextField extends Gui
         }
 
         this.field_146213_o = p_146195_1_;
+        ImeInput.focusChanged(this, this::isFocused);
     }
 
     /**

@@ -5,6 +5,9 @@ import com.cheatbreaker.client.event.type.ClickEvent;
 import com.cheatbreaker.client.event.type.KeyboardEvent;
 import com.cheatbreaker.client.event.type.LoadWorldEvent;
 import com.cheatbreaker.client.event.type.TickEvent;
+import com.cheatbreaker.client.util.display.BorderlessFullscreen;
+import com.cheatbreaker.client.util.input.ImeInput;
+import com.cheatbreaker.client.util.input.PhysicalKeyboard;
 import com.cheatbreaker.client.ui.AbstractGui;
 import com.cheatbreaker.client.ui.mainmenu.LoadingScreen;
 import com.cheatbreaker.client.ui.overlay.OverlayGui;
@@ -18,6 +21,9 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import io.netty.util.concurrent.GenericFutureListener;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -128,6 +134,7 @@ import net.minecraft.profiler.PlayerUsageSnooper;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.src.Config;
 import net.minecraft.stats.AchievementList;
 import net.minecraft.stats.StatFileWriter;
 import net.minecraft.util.ChatComponentText;
@@ -413,14 +420,35 @@ public class Minecraft implements IPlayerUsage
 
         if (var1 != Util.EnumOS.OSX)
         {
-            try
+            try (InputStream icon32 = Minecraft.class.getClassLoader().getResourceAsStream("assets/minecraft/client/icon-1.png");
+                 InputStream icon64 = Minecraft.class.getClassLoader().getResourceAsStream("assets/minecraft/client/icon-2.png"))
             {
-                InputStream var2 = Minecraft.class.getClassLoader().getResourceAsStream("./assets/minecraft/client/icon-1.png");
-                InputStream var3 = Minecraft.class.getClassLoader().getResourceAsStream("./assets/minecraft/client/icon-2.png");
-
-                if (var2 != null && var3 != null)
+                if (icon32 != null && icon64 != null)
                 {
-                    Display.setIcon(new ByteBuffer[] {this.func_152340_a(var2), this.func_152340_a(var3)});
+                    BufferedImage largeIcon = ImageIO.read(icon32);
+                    BufferedImage highResolutionIcon = ImageIO.read(icon64);
+                    if (largeIcon == null || highResolutionIcon == null)
+                    {
+                        throw new IOException("Could not decode CheatBreaker window icons");
+                    }
+
+                    BufferedImage smallIcon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D graphics = smallIcon.createGraphics();
+                    try
+                    {
+                        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        graphics.drawImage(largeIcon, 0, 0, 16, 16, null);
+                    }
+                    finally
+                    {
+                        graphics.dispose();
+                    }
+                    Display.setIcon(new ByteBuffer[] {this.func_152340_a(smallIcon),
+                            this.func_152340_a(largeIcon), this.func_152340_a(highResolutionIcon)});
+                }
+                else
+                {
+                    logger.warn("CheatBreaker window icon resources are missing from the client JAR");
                 }
             }
             catch (IOException var8)
@@ -453,6 +481,8 @@ public class Minecraft implements IPlayerUsage
 
             Display.create();
         }
+
+        ImeInput.update(null);
 
         OpenGlHelper.initializeTextures();
 
@@ -625,10 +655,9 @@ public class Minecraft implements IPlayerUsage
         this.defaultResourcePacks.add(this.mcDefaultResourcePack);
     }
 
-    private ByteBuffer func_152340_a(InputStream p_152340_1_) throws IOException
+    private ByteBuffer func_152340_a(BufferedImage image)
     {
-        BufferedImage var2 = ImageIO.read(p_152340_1_);
-        int[] var3 = var2.getRGB(0, 0, var2.getWidth(), var2.getHeight(), (int[])null, 0, var2.getWidth());
+        int[] var3 = image.getRGB(0, 0, image.getWidth(), image.getHeight(), (int[])null, 0, image.getWidth());
         ByteBuffer var4 = ByteBuffer.allocate(4 * var3.length);
         int[] var5 = var3;
         int var6 = var3.length;
@@ -645,6 +674,22 @@ public class Minecraft implements IPlayerUsage
 
     private void updateDisplayMode() throws LWJGLException
     {
+        DisplayMode var2 = this.selectFullscreenDisplayMode();
+        Display.setDisplayMode(var2);
+        this.displayWidth = var2.getWidth();
+        this.displayHeight = var2.getHeight();
+    }
+
+    private DisplayMode selectFullscreenDisplayMode() throws LWJGLException
+    {
+        if (this.gameSettings != null && !"Default".equals(this.gameSettings.ofFullscreenMode)) {
+            Dimension configuredSize = Config.getFullscreenDimension();
+            if (configuredSize != null) {
+                DisplayMode configuredMode = Config.getDisplayMode(configuredSize);
+                if (configuredMode != null) return configuredMode;
+            }
+        }
+
         HashSet var1 = new HashSet();
         Collections.addAll(var1, Display.getAvailableDisplayModes());
         DisplayMode var2 = Display.getDesktopDisplayMode();
@@ -689,9 +734,7 @@ public class Minecraft implements IPlayerUsage
             }
         }
 
-        Display.setDisplayMode(var2);
-        this.displayWidth = var2.getWidth();
-        this.displayHeight = var2.getHeight();
+        return var2;
     }
 
     /**
@@ -778,6 +821,7 @@ public class Minecraft implements IPlayerUsage
     {
         if (this.currentScreen != null)
         {
+            PhysicalKeyboard.synchronizeScreenKeys(this.gameSettings);
             this.currentScreen.onGuiClosed();
         }
 
@@ -812,6 +856,8 @@ public class Minecraft implements IPlayerUsage
             this.mcSoundHandler.func_147687_e();
             this.setIngameFocus();
         }
+
+        ImeInput.update(this.currentScreen);
     }
 
     /**
@@ -1013,7 +1059,7 @@ public class Minecraft implements IPlayerUsage
         GL11.glFlush();
         this.mcProfiler.endSection();
 
-        if (!Display.isActive() && this.fullscreen)
+        if (!Display.isActive() && this.fullscreen && !BorderlessFullscreen.isActive())
         {
             this.toggleFullscreen();
         }
@@ -1509,40 +1555,63 @@ public class Minecraft implements IPlayerUsage
     {
         try
         {
-            this.fullscreen = !this.fullscreen;
-
-            if (this.fullscreen)
-            {
-                this.updateDisplayMode();
-                this.displayWidth = Display.getDisplayMode().getWidth();
-                this.displayHeight = Display.getDisplayMode().getHeight();
-
-                if (this.displayWidth <= 0)
-                {
-                    this.displayWidth = 1;
+            boolean nextFullscreen = !this.fullscreen;
+            long switchStarted = System.nanoTime();
+            if (nextFullscreen && CheatBreaker.getInstance() != null
+                    && CheatBreaker.getInstance().globalSettings != null
+                    && "Borderless".equals(CheatBreaker.getInstance().globalSettings.fullscreenMode.getValue())) {
+                this.tempDisplayWidth = Math.max(1, this.displayWidth);
+                this.tempDisplayHeight = Math.max(1, this.displayHeight);
+                if (BorderlessFullscreen.enter()) {
+                    this.fullscreen = true;
+                    this.displayWidth = BorderlessFullscreen.getWidth();
+                    this.displayHeight = BorderlessFullscreen.getHeight();
+                    long displaySwitched = System.nanoTime();
+                    if (this.currentScreen != null) this.resize(this.displayWidth, this.displayHeight);
+                    else this.updateFramebufferSize();
+                    long framebufferResized = System.nanoTime();
+                    Display.setVSyncEnabled(this.gameSettings.enableVsync);
+                    this.func_147120_f();
+                    ImeInput.update(this.currentScreen);
+                    logger.info("Fullscreen switch (Borderless): display " + (displaySwitched - switchStarted) / 1000000L
+                            + " ms, framebuffer " + (framebufferResized - displaySwitched) / 1000000L
+                            + " ms, total " + (System.nanoTime() - switchStarted) / 1000000L + " ms");
+                    return;
                 }
-
-                if (this.displayHeight <= 0)
-                {
-                    this.displayHeight = 1;
+                logger.warn("Borderless fullscreen unavailable; using exclusive fullscreen");
+            } else if (!nextFullscreen && BorderlessFullscreen.isActive()) {
+                if (!BorderlessFullscreen.exit()) {
+                    logger.warn("Could not restore borderless window");
+                    return;
                 }
+                this.fullscreen = false;
+                this.displayWidth = Math.max(1, this.tempDisplayWidth);
+                this.displayHeight = Math.max(1, this.tempDisplayHeight);
+                long displaySwitched = System.nanoTime();
+                if (this.currentScreen != null) this.resize(this.displayWidth, this.displayHeight);
+                else this.updateFramebufferSize();
+                long framebufferResized = System.nanoTime();
+                Display.setVSyncEnabled(this.gameSettings.enableVsync);
+                this.func_147120_f();
+                ImeInput.update(this.currentScreen);
+                logger.info("Fullscreen switch (Borderless): display " + (displaySwitched - switchStarted) / 1000000L
+                        + " ms, framebuffer " + (framebufferResized - displaySwitched) / 1000000L
+                        + " ms, total " + (System.nanoTime() - switchStarted) / 1000000L + " ms");
+                return;
             }
-            else
-            {
-                Display.setDisplayMode(new DisplayMode(this.tempDisplayWidth, this.tempDisplayHeight));
-                this.displayWidth = this.tempDisplayWidth;
-                this.displayHeight = this.tempDisplayHeight;
-
-                if (this.displayWidth <= 0)
-                {
-                    this.displayWidth = 1;
-                }
-
-                if (this.displayHeight <= 0)
-                {
-                    this.displayHeight = 1;
-                }
+            if (nextFullscreen) {
+                this.tempDisplayWidth = Math.max(1, this.displayWidth);
+                this.tempDisplayHeight = Math.max(1, this.displayHeight);
             }
+            DisplayMode nextMode = nextFullscreen ? this.selectFullscreenDisplayMode()
+                    : new DisplayMode(this.tempDisplayWidth, this.tempDisplayHeight);
+
+            // A single LWJGL call avoids destroying and recreating the window twice.
+            Display.setDisplayModeAndFullscreen(nextMode);
+            long displaySwitched = System.nanoTime();
+            this.fullscreen = nextFullscreen;
+            this.displayWidth = Math.max(1, nextMode.getWidth());
+            this.displayHeight = Math.max(1, nextMode.getHeight());
 
             if (this.currentScreen != null)
             {
@@ -1553,9 +1622,13 @@ public class Minecraft implements IPlayerUsage
                 this.updateFramebufferSize();
             }
 
-            Display.setFullscreen(this.fullscreen);
+            long framebufferResized = System.nanoTime();
             Display.setVSyncEnabled(this.gameSettings.enableVsync);
             this.func_147120_f();
+            ImeInput.update(this.currentScreen);
+            logger.info("Fullscreen switch (Exclusive): display " + (displaySwitched - switchStarted) / 1000000L
+                    + " ms, framebuffer " + (framebufferResized - displaySwitched) / 1000000L
+                    + " ms, total " + (System.nanoTime() - switchStarted) / 1000000L + " ms");
         }
         catch (Exception var2)
         {
@@ -1804,11 +1877,21 @@ public class Minecraft implements IPlayerUsage
             this.mcProfiler.endStartSection("keyboard");
             boolean var10;
 
+            if (this.currentScreen != null) {
+                PhysicalKeyboard.synchronizeScreenKeys(this.gameSettings);
+            }
+
             while (Keyboard.next())
             {
+                GuiScreen screenAtEvent = this.currentScreen;
+                boolean keyPressed = Keyboard.getEventKeyState();
+                boolean observedPress = PhysicalKeyboard.observeGameKeyEvent(Keyboard.getEventKey(), keyPressed);
+                boolean acceptedPress = screenAtEvent == null
+                        ? observedPress
+                        : keyPressed;
                 KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
 
-                if (Keyboard.getEventKeyState())
+                if (acceptedPress && screenAtEvent == null)
                 {
                     KeyBinding.onTick(Keyboard.getEventKey());
                 }
@@ -1830,14 +1913,14 @@ public class Minecraft implements IPlayerUsage
                     this.field_83002_am = getSystemTime();
                 }
 
-                this.func_152348_aa();
+                if (!keyPressed || acceptedPress) this.func_152348_aa();
 
-                if (Keyboard.getEventKeyState())
+                if (acceptedPress)
                 {
 
                     CheatBreaker.getInstance().getEventBus().callEvent(new KeyboardEvent(Keyboard.getEventKey()));
 
-                    if (Keyboard.isKeyDown(42) && Keyboard.getEventKey() == 15) {
+                    if ((PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54)) && Keyboard.getEventKey() == 15) {
                         this.displayGuiScreen(OverlayGui.createInstance(this.currentScreen));
                     }
 
@@ -1846,50 +1929,52 @@ public class Minecraft implements IPlayerUsage
                         this.entityRenderer.deactivateShader();
                     }
 
-                    if (this.currentScreen != null)
+                    if (screenAtEvent != null)
                     {
-                        this.currentScreen.handleKeyboardInput();
+                        if (this.currentScreen == screenAtEvent) {
+                            screenAtEvent.handleKeyboardInput();
+                        }
                     }
-                    else
+                    else if (this.currentScreen == null)
                     {
                         if (Keyboard.getEventKey() == 1)
                         {
                             this.displayInGameMenu();
                         }
 
-                        if (Keyboard.getEventKey() == 31 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 31 && PhysicalKeyboard.isKeyDown(61))
                         {
                             this.refreshResources();
                         }
 
-                        if (Keyboard.getEventKey() == 20 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 20 && PhysicalKeyboard.isKeyDown(61))
                         {
                             this.refreshResources();
                         }
 
-                        if (Keyboard.getEventKey() == 33 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 33 && PhysicalKeyboard.isKeyDown(61))
                         {
-                            var10 = Keyboard.isKeyDown(42) | Keyboard.isKeyDown(54);
+                            var10 = PhysicalKeyboard.isKeyDown(42) | PhysicalKeyboard.isKeyDown(54);
                             this.gameSettings.setOptionValue(GameSettings.Options.RENDER_DISTANCE, var10 ? -1 : 1);
                         }
 
-                        if (Keyboard.getEventKey() == 30 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 30 && PhysicalKeyboard.isKeyDown(61))
                         {
                             this.renderGlobal.loadRenderers();
                         }
 
-                        if (Keyboard.getEventKey() == 35 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 35 && PhysicalKeyboard.isKeyDown(61))
                         {
                             this.gameSettings.advancedItemTooltips = !this.gameSettings.advancedItemTooltips;
                             this.gameSettings.saveOptions();
                         }
 
-                        if (Keyboard.getEventKey() == 48 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 48 && PhysicalKeyboard.isKeyDown(61))
                         {
                             RenderManager.field_85095_o = !RenderManager.field_85095_o;
                         }
 
-                        if (Keyboard.getEventKey() == 25 && Keyboard.isKeyDown(61))
+                        if (Keyboard.getEventKey() == 25 && PhysicalKeyboard.isKeyDown(61))
                         {
                             this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
                             this.gameSettings.saveOptions();
@@ -1903,23 +1988,9 @@ public class Minecraft implements IPlayerUsage
                         if (Keyboard.getEventKey() == 61)
                         {
                             this.gameSettings.showDebugInfo = !this.gameSettings.showDebugInfo;
-                            this.gameSettings.showDebugProfilerChart = GuiScreen.isShiftKeyDown();
+                            this.gameSettings.showDebugProfilerChart = PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54);
                         }
 
-                        if (this.gameSettings.keyBindTogglePerspective.isPressed())
-                        {
-                            ++this.gameSettings.thirdPersonView;
-
-                            if (this.gameSettings.thirdPersonView > 2)
-                            {
-                                this.gameSettings.thirdPersonView = 0;
-                            }
-                        }
-
-                        if (this.gameSettings.keyBindSmoothCamera.isPressed())
-                        {
-                            this.gameSettings.smoothCamera = !this.gameSettings.smoothCamera;
-                        }
                     }
 
                     if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)
@@ -1938,6 +2009,20 @@ public class Minecraft implements IPlayerUsage
                         }
                     }
                 }
+            }
+
+            if (this.currentScreen == null) {
+                for (int code : PhysicalKeyboard.pollMissingGamePresses(this.gameSettings)) {
+                    this.handleMissedPhysicalGameKey(code);
+                }
+            }
+
+            if (this.currentScreen == null && this.gameSettings.keyBindTogglePerspective.isPressed()) {
+                this.gameSettings.thirdPersonView = (this.gameSettings.thirdPersonView + 1) % 3;
+            }
+
+            if (this.currentScreen == null && this.gameSettings.keyBindSmoothCamera.isPressed()) {
+                this.gameSettings.smoothCamera = !this.gameSettings.smoothCamera;
             }
 
             for (var9 = 0; var9 < 9; ++var9)
@@ -2934,15 +3019,61 @@ public class Minecraft implements IPlayerUsage
         return this.field_152353_at;
     }
 
+    private void handleMissedPhysicalGameKey(int code)
+    {
+        if (this.currentScreen != null) return;
+
+        CheatBreaker.getInstance().getEventBus().callEvent(new KeyboardEvent(code));
+        this.func_152348_aa(code, true, false);
+
+        if (code == 15 && (PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54))) {
+            this.displayGuiScreen(OverlayGui.createInstance(this.currentScreen));
+        } else if (code == 62 && this.entityRenderer != null) {
+            this.entityRenderer.deactivateShader();
+        } else if (code == 1) {
+            this.displayInGameMenu();
+        }
+
+        if (this.currentScreen != null) return;
+
+        boolean debug = PhysicalKeyboard.isKeyDown(61);
+        if (debug && (code == 31 || code == 20)) this.refreshResources();
+        if (debug && code == 33) {
+            boolean shift = PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54);
+            this.gameSettings.setOptionValue(GameSettings.Options.RENDER_DISTANCE, shift ? -1 : 1);
+        }
+        if (debug && code == 30) this.renderGlobal.loadRenderers();
+        if (debug && code == 35) {
+            this.gameSettings.advancedItemTooltips = !this.gameSettings.advancedItemTooltips;
+            this.gameSettings.saveOptions();
+        }
+        if (debug && code == 48) RenderManager.field_85095_o = !RenderManager.field_85095_o;
+        if (debug && code == 25) {
+            this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
+            this.gameSettings.saveOptions();
+        }
+        if (code == 59) this.gameSettings.hideGUI = !this.gameSettings.hideGUI;
+        if (code == 61) {
+            this.gameSettings.showDebugInfo = !this.gameSettings.showDebugInfo;
+            this.gameSettings.showDebugProfilerChart = PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54);
+        }
+        if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart && code >= 2 && code <= 11) {
+            this.updateDebugProfilerName(code == 11 ? 0 : code - 1);
+        }
+    }
+
     public void func_152348_aa()
     {
-        int var1 = Keyboard.getEventKey();
+        this.func_152348_aa(Keyboard.getEventKey(), Keyboard.getEventKeyState(), Keyboard.isRepeatEvent());
+    }
 
-        if (var1 != 0 && !Keyboard.isRepeatEvent())
+    private void func_152348_aa(int var1, boolean pressed, boolean repeated)
+    {
+        if (var1 != 0 && !repeated)
         {
             if (!(this.currentScreen instanceof GuiControls) || ((GuiControls)this.currentScreen).field_152177_g <= getSystemTime() - 20L)
             {
-                if (Keyboard.getEventKeyState())
+                if (pressed)
                 {
                     if (var1 == this.gameSettings.field_152396_an.getKeyCode())
                     {

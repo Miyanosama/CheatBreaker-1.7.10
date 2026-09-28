@@ -75,6 +75,11 @@ public class GuiScreenBook extends GuiScreen
         }
     }
 
+    public boolean isEditingText()
+    {
+        return this.field_146475_i;
+    }
+
     /**
      * Called from the main game loop to update the screen.
      */

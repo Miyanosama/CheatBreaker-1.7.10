@@ -1,5 +1,6 @@
 package net.minecraft.client.gui.inventory;
 
+import com.cheatbreaker.client.util.input.PhysicalKeyboard;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -50,12 +51,15 @@ public abstract class GuiContainer extends GuiScreen
     private int field_146992_L;
     private boolean field_146993_M;
     private ItemStack field_146994_N;
+    private boolean ignoreOpeningInventoryKey;
 
 
     public GuiContainer(Container p_i1072_1_)
     {
         this.field_147002_h = p_i1072_1_;
         this.field_146995_H = true;
+        int inventoryKey = Minecraft.getMinecraft().gameSettings.keyBindInventory.getKeyCode();
+        this.ignoreOpeningInventoryKey = inventoryKey > 0 && PhysicalKeyboard.isKeyDown(inventoryKey);
     }
 
     /**
@@ -74,6 +78,12 @@ public abstract class GuiContainer extends GuiScreen
      */
     public void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_)
     {
+        if (this.ignoreOpeningInventoryKey
+                && !PhysicalKeyboard.isKeyDown(this.mc.gameSettings.keyBindInventory.getKeyCode()))
+        {
+            this.ignoreOpeningInventoryKey = false;
+        }
+
         this.drawDefaultBackground();
         int var4 = this.field_147003_i;
         int var5 = this.field_147009_r;
@@ -641,6 +651,12 @@ public abstract class GuiContainer extends GuiScreen
      */
     protected void keyTyped(char p_73869_1_, int p_73869_2_)
     {
+        if (p_73869_2_ == this.mc.gameSettings.keyBindInventory.getKeyCode()
+                && (this.ignoreOpeningInventoryKey || Keyboard.isRepeatEvent()))
+        {
+            return;
+        }
+
         if (p_73869_2_ == 1 || p_73869_2_ == this.mc.gameSettings.keyBindInventory.getKeyCode())
         {
             this.mc.thePlayer.closeScreen();

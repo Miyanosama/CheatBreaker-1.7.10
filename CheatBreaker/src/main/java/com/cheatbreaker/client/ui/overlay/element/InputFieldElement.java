@@ -1,5 +1,6 @@
 package com.cheatbreaker.client.ui.overlay.element;
 
+import com.cheatbreaker.client.util.input.ImeInput;
 import com.cheatbreaker.client.ui.overlay.StringSanitizer;
 import com.cheatbreaker.client.ui.util.font.CBFontRenderer;
 import com.cheatbreaker.client.ui.mainmenu.AbstractElement;
@@ -411,6 +412,7 @@ public class InputFieldElement extends AbstractElement {
             this.IlllIllIlIIIIlIIlIIllIIIl = 0;
         }
         this.lIIlIlIllIIlIIIlIIIlllIII = bl;
+        ImeInput.focusChanged(this, this::lllIIIIIlIllIlIIIllllllII);
     }
 
     public boolean lllIIIIIlIllIlIIIllllllII() {

@@ -52,6 +52,9 @@ public class GlobalSettings {
     public Setting worldTime;
     public Setting lookView;
     public Setting snapModules;
+    public Setting rawMouseInput;
+    public Setting fullscreenMode;
+    public Setting disableAchievements;
     private Setting renderSettingsLabel;
     public Setting showHudInDebug;
     public Setting showChatBackground;
@@ -151,6 +154,12 @@ public class GlobalSettings {
         this.worldTime = new Setting(this.settingsList, "World Time").setValue(-14490).setMinMax(-22880, -6100);
         this.lookView = new Setting(this.settingsList, "Look View").setValue("Third").acceptedValues("Third", "Reverse", "First");
         this.snapModules = new Setting(this.settingsList, "Snap mods to other mods (GUI)").setValue(true);
+        this.rawMouseInput = new Setting(this.settingsList, "Raw Mouse Input")
+                .onChange(value -> com.cheatbreaker.client.util.input.RawMouseInput.setEnabled((Boolean) value))
+                .setValue(false);
+        this.fullscreenMode = new Setting(this.settingsList, "Fullscreen Mode")
+                .setValue("Borderless").acceptedValues("Borderless", "Exclusive");
+        this.disableAchievements = new Setting(this.settingsList, "Disable Achievements").setValue(false);
         this.renderSettingsLabel = new Setting(this.settingsList, "label").setValue("Render Settings");
         this.showPotionInfo = new Setting(this.settingsList, "Show Potion info in inventory").setValue(true);
         this.showChatBackground = new Setting(this.settingsList, "Show chat background").setValue(true);

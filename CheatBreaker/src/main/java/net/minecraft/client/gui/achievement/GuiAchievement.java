@@ -1,5 +1,6 @@
 package net.minecraft.client.gui.achievement;
 
+import com.cheatbreaker.client.CheatBreaker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -72,6 +73,16 @@ public class GuiAchievement extends Gui
 
     public void func_146254_a()
     {
+        CheatBreaker cheatBreaker = CheatBreaker.getInstance();
+
+        if (cheatBreaker != null && cheatBreaker.globalSettings != null
+                && cheatBreaker.globalSettings.disableAchievements != null
+                && Boolean.TRUE.equals(cheatBreaker.globalSettings.disableAchievements.getValue()))
+        {
+            this.func_146257_b();
+            return;
+        }
+
         if (this.field_146266_k != null && this.field_146263_l != 0L && Minecraft.getMinecraft().thePlayer != null)
         {
             double var1 = (double)(Minecraft.getSystemTime() - this.field_146263_l) / 3000.0D;

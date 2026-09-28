@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.cheatbreaker.client.CheatBreaker;
 import com.cheatbreaker.client.ui.overlay.OverlayGui;
+import com.cheatbreaker.client.util.input.PhysicalKeyboard;
+import com.cheatbreaker.client.util.input.ImeInput;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
@@ -279,7 +281,9 @@ public class GuiScreen extends Gui
         this.width = p_146280_2_;
         this.height = p_146280_3_;
         this.buttonList.clear();
+        ImeInput.beginScreen(this);
         this.initGui();
+        ImeInput.update(this);
     }
 
     /**
@@ -297,6 +301,7 @@ public class GuiScreen extends Gui
             while (Mouse.next())
             {
                 this.handleMouseInput();
+                if (this.mc.currentScreen != this) return;
             }
         }
 
@@ -305,6 +310,7 @@ public class GuiScreen extends Gui
             while (Keyboard.next())
             {
                 this.handleKeyboardInput();
+                if (this.mc.currentScreen != this) return;
             }
         }
     }
@@ -351,9 +357,14 @@ public class GuiScreen extends Gui
      */
     public void handleKeyboardInput()
     {
-        if (Keyboard.getEventKeyState())
+        char character = Keyboard.getEventCharacter();
+        int key = Keyboard.getEventKey();
+        PhysicalKeyboard.observeGameKeyEvent(key, Keyboard.getEventKeyState());
+
+        // LWJGL 2 reports committed IME text as a character event without a key press.
+        if (Keyboard.getEventKeyState() || (key == 0 && character != 0 && Character.isDefined(character)))
         {
-            this.keyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey());
+            this.keyTyped(character, key);
         }
 
         this.mc.func_152348_aa();

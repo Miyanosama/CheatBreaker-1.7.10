@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer;
 
 import com.cheatbreaker.client.CheatBreaker;
+import com.cheatbreaker.client.util.input.PhysicalKeyboard;
 import com.cheatbreaker.client.event.type.RenderWorldEvent;
 import com.cheatbreaker.client.ui.overlay.OverlayGui;
 import com.google.gson.JsonSyntaxException;
@@ -536,11 +537,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             boolean zoomActive = false;
 
             if (this.mc.currentScreen == null) {
-                if (this.mc.gameSettings.ofKeyBindZoom.getKeyCode() < 0) {
-                    zoomActive = Mouse.isButtonDown(this.mc.gameSettings.ofKeyBindZoom.getKeyCode() + 100);
-                } else {
-                    zoomActive = Keyboard.isKeyDown(this.mc.gameSettings.ofKeyBindZoom.getKeyCode());
-                }
+                zoomActive = PhysicalKeyboard.isBindingDown(this.mc.gameSettings.ofKeyBindZoom);
             }
 
             if (zoomActive) {

@@ -2,9 +2,11 @@ package net.minecraft;
 
 import com.cheatbreaker.client.CheatBreaker;
 import com.cheatbreaker.client.module.type.togglesprint.ToggleSprintModule;
+import com.cheatbreaker.client.util.input.PhysicalKeyboard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.MovementInputFromOptions;
 
 import java.text.DecimalFormat;
@@ -28,20 +30,24 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
         super(gameSettings);
     }
 
+    private static boolean keyDown(KeyBinding binding) {
+        return PhysicalKeyboard.isMovementDown(Minecraft.getMinecraft(), binding);
+    }
+
     public static void lIIIIlIIllIIlIIlIIIlIIllI(Minecraft minecraft, MovementInputFromOptions movementInputFromOptions, EntityPlayerSP entityPlayerSP) {
         movementInputFromOptions.moveStrafe = 0.0f;
         movementInputFromOptions.moveForward = 0.0f;
         GameSettings gameSettings = minecraft.gameSettings;
-        if (gameSettings.keyBindForward.getIsKeyPressed()) {
+        if (keyDown(gameSettings.keyBindForward)) {
             movementInputFromOptions.moveForward += 1.0f;
         }
-        if (gameSettings.keyBindBack.getIsKeyPressed()) {
+        if (keyDown(gameSettings.keyBindBack)) {
             movementInputFromOptions.moveForward -= 1.0f;
         }
-        if (gameSettings.keyBindLeft.getIsKeyPressed()) {
+        if (keyDown(gameSettings.keyBindLeft)) {
             movementInputFromOptions.moveStrafe += 1.0f;
         }
-        if (gameSettings.keyBindRight.getIsKeyPressed()) {
+        if (keyDown(gameSettings.keyBindRight)) {
             movementInputFromOptions.moveStrafe -= 1.0f;
         }
         if (entityPlayerSP.isRiding() && !IIIlIIllllIIllllllIlIIIll) {
@@ -56,9 +62,9 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
                 superSusBoolean = false;
             }
         }
-        movementInputFromOptions.jump = gameSettings.keyBindJump.getIsKeyPressed();
+        movementInputFromOptions.jump = keyDown(gameSettings.keyBindJump);
         if ((Boolean) ToggleSprintModule.toggleSneak.getValue() && CheatBreaker.getInstance().getModuleManager().toggleSprint.isEnabled()) {
-            if (gameSettings.keyBindSneak.getIsKeyPressed() && !lIIlIlIllIIlIIIlIIIlllIII) {
+            if (keyDown(gameSettings.keyBindSneak) && !lIIlIlIllIIlIIIlIIIlllIII) {
                 if (entityPlayerSP.isRiding() || entityPlayerSP.capabilities.isFlying) {
                     movementInputFromOptions.sneak = true;
                     llIlIIIlIIIIlIlllIlIIIIll = entityPlayerSP.isRiding();
@@ -68,7 +74,7 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
                 IlIlllIIIIllIllllIllIIlIl = System.currentTimeMillis();
                 lIIlIlIllIIlIIIlIIIlllIII = true;
             }
-            if (!gameSettings.keyBindSneak.getIsKeyPressed() && lIIlIlIllIIlIIIlIIIlllIII) {
+            if (!keyDown(gameSettings.keyBindSneak) && lIIlIlIllIIlIIIlIIIlllIII) {
                 if (entityPlayerSP.capabilities.isFlying || llIlIIIlIIIIlIlllIlIIIIll) {
                     movementInputFromOptions.sneak = false;
                 } else if (System.currentTimeMillis() - IlIlllIIIIllIllllIllIIlIl > 300L) {
@@ -77,7 +83,7 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
                 lIIlIlIllIIlIIIlIIIlllIII = false;
             }
         } else {
-            movementInputFromOptions.sneak = gameSettings.keyBindSneak.getIsKeyPressed();
+            movementInputFromOptions.sneak = keyDown(gameSettings.keyBindSneak);
         }
         if (movementInputFromOptions.sneak) {
             movementInputFromOptions.moveStrafe = (float)((double)movementInputFromOptions.moveStrafe * ((double)1.7f * 0.17647058328542756));
@@ -87,13 +93,13 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
         boolean bl2 = !movementInputFromOptions.sneak && !entityPlayerSP.capabilities.isFlying && bl;
         lIIIIlIIllIIlIIlIIIlIIllI = !((Boolean) ToggleSprintModule.toggleSprint.getValue());
         lIIIIIIIIIlIllIIllIlIIlIl = (Boolean) ToggleSprintModule.doubleTap.getValue();
-        if ((bl2 || lIIIIlIIllIIlIIlIIIlIIllI) && gameSettings.keyBindSprint.getIsKeyPressed() && !IIIlllIIIllIllIlIIIIIIlII && !entityPlayerSP.capabilities.isFlying && !lIIIIlIIllIIlIIlIIIlIIllI) {
+        if ((bl2 || lIIIIlIIllIIlIIlIIIlIIllI) && keyDown(gameSettings.keyBindSprint) && !IIIlllIIIllIllIlIIIIIIlII && !entityPlayerSP.capabilities.isFlying && !lIIIIlIIllIIlIIlIIIlIIllI) {
             isSprinting = !isSprinting;
             llIIlllIIIIlllIllIlIlllIl = System.currentTimeMillis();
             IIIlllIIIllIllIlIIIIIIlII = true;
             superSusBoolean = false;
         }
-        if ((bl2 || lIIIIlIIllIIlIIlIIIlIIllI) && !gameSettings.keyBindSprint.getIsKeyPressed() && IIIlllIIIllIllIlIIIIIIlII) {
+        if ((bl2 || lIIIIlIIllIIlIIlIIIlIIllI) && !keyDown(gameSettings.keyBindSprint) && IIIlllIIIllIllIlIIIIIIlII) {
             if (System.currentTimeMillis() - llIIlllIIIIlllIllIlIlllIl > 300L) {
                 superSusBoolean = true;
             }
@@ -112,8 +118,8 @@ public class MinecraftMovementInputHelper extends MovementInputFromOptions {
         String string = "";
         boolean flying = entityPlayerSP.capabilities.isFlying;
         boolean riding = entityPlayerSP.isRiding();
-        boolean sneakHeld = gameSettings.keyBindSneak.getIsKeyPressed();
-        boolean sprintHeld = gameSettings.keyBindSprint.getIsKeyPressed();
+        boolean sneakHeld = keyDown(gameSettings.keyBindSneak);
+        boolean sprintHeld = keyDown(gameSettings.keyBindSprint);
         if (flying) {
             DecimalFormat decimalFormat = new DecimalFormat("#.00");
             string = (Boolean) ToggleSprintModule.flyBoost.getValue() && sprintHeld && entityPlayerSP.capabilities.isCreativeMode ? string + ((String)CheatBreaker.getInstance().getModuleManager().toggleSprint.flyBoostString.getValue()).replaceAll("%BOOST%", decimalFormat.format(ToggleSprintModule.flyBoostAmount.getValue())) : string + CheatBreaker.getInstance().getModuleManager().toggleSprint.flyString.getValue();

@@ -1,5 +1,6 @@
 package net.minecraft.util;
 
+import com.cheatbreaker.client.util.input.RawMouseInput;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
@@ -33,6 +34,13 @@ public class MouseHelper
 
     public void mouseXYChange()
     {
+        if (RawMouseInput.consume(this))
+        {
+            Mouse.getDX();
+            Mouse.getDY();
+            return;
+        }
+
         this.deltaX = Mouse.getDX();
         this.deltaY = Mouse.getDY();
     }

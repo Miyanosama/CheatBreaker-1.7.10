@@ -1,5 +1,6 @@
 package net.minecraft.src;
 
+import com.cheatbreaker.client.util.display.BorderlessFullscreen;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -1644,6 +1645,7 @@ public class Config
 
     public static void checkDisplayMode()
     {
+        if (BorderlessFullscreen.isActive()) return;
         try
         {
             if (minecraft.isFullScreen())
