@@ -404,6 +404,9 @@ public class CBModulesGui extends GuiScreen {
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int n3) {
+        if (this.IlllIIIlIlllIllIlIIlllIlI(mouseX, mouseY, n3)) {
+            return;
+        }
         ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         if (this.lIIIIllIIlIlIllIIIlIllIlI != null && this.lIIIIllIIlIlIllIIIlIllIlI.isMouseInside(mouseX, mouseY)) {
             this.lIIIIllIIlIlIllIIIlIllIlI.handleMouseClick(mouseX, mouseY, n3);
@@ -467,7 +470,6 @@ public class CBModulesGui extends GuiScreen {
                     Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
                     this.IlIIIIllIIIIIlllIIlIIlllI = !this.IlIIIIllIIIIIlllIIlIIlllI;
                 }
-                this.IlllIIIlIlllIllIlIIlllIlI(mouseX, mouseY, n3);
                 this.lIIIIlIIllIIlIIlIIIlIIllI(scaledResolution, mouseX, mouseY, n3);
             }
             for (Object object : this.buttons) {
@@ -684,18 +686,27 @@ public class CBModulesGui extends GuiScreen {
         }
     }
 
-    private void IlllIIIlIlllIllIlIIlllIlI(int n, int n2, int n3) {
-        for (ModulesGuiButtonElement llllIIIIIlIlIlIlIllIIIIII2 : this.buttons) {
-            if (n3 != 0 || !llllIIIIIlIlIlIlIllIIIIII2.isMouseInside(n, n2) || IlIlllIIIIllIllllIllIIlIl) continue;
-            if (llllIIIIIlIlIlIlIllIIIIII2.lIIIIllIIlIlIllIIIlIllIlI != null && this.lIIIIllIIlIlIllIIIlIllIlI != llllIIIIIlIlIlIlIllIIIIII2.lIIIIllIIlIlIllIIIlIllIlI && this.currentScrollableElement == null) {
-                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
-                this.currentScrollableElement = llllIIIIIlIlIlIlIllIIIIII2.lIIIIllIIlIlIllIIIlIllIlI;
-                continue;
-            }
-            if (llllIIIIIlIlIlIlIllIIIIII2.lIIIIllIIlIlIllIIIlIllIlI == null || this.currentScrollableElement != null) continue;
-            Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
-            IlIlllIIIIllIllllIllIIlIl = true;
+    private boolean IlllIIIlIlllIllIlIIlllIlI(int n, int n2, int n3) {
+        if (n3 != 0 && n3 != 1) {
+            return false;
         }
+        for (ModulesGuiButtonElement button : this.buttons) {
+            if (!button.isMouseInside(n, n2)) continue;
+            if (button.lIIIIllIIlIlIllIIIlIllIlI == this.IIIIllIIllIIIIllIllIIIlIl) {
+                ((ModuleListElement) this.IIIIllIIllIIIIllIllIIIlIl).showModuleDirectory();
+            }
+            if (!IlIlllIIIIllIllllIllIIlIl && button.lIIIIllIIlIlIllIIIlIllIlI != null
+                    && this.lIIIIllIIlIlIllIIIlIllIlI != button.lIIIIllIIlIlIllIIIlIllIlI) {
+                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
+                this.currentScrollableElement = button.lIIIIllIIlIlIllIIIlIllIlI;
+            } else if (!IlIlllIIIIllIllllIllIIlIl && button.lIIIIllIIlIlIllIIIlIllIlI == null
+                    && this.currentScrollableElement == null) {
+                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
+                IlIlllIIIIllIllllIllIIlIl = true;
+            }
+            return true;
+        }
+        return false;
     }
 
     private AbstractModule lIIIIlIIllIIlIIlIIIlIIllI(ScaledResolution scaledResolution, int n, int n2) {

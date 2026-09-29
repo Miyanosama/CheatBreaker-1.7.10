@@ -126,6 +126,15 @@ public class ModuleListElement extends AbstractScrollableElement {
         this.applyToAllTextButton = new ModulesGuiButtonElement(CheatBreaker.getInstance().playBold18px, null, "Apply to all text", this.x + n3 - 120, this.y + n5 + 4, 110, 28, -12418828, f);
     }
 
+    public void showModuleDirectory() {
+        this.module = null;
+        this.llIlIIIlIIIIlIlllIlIIIIll = false;
+        this.scrollable = null;
+        this.lIIIIllIIlIlIllIIIlIllIlI = 0;
+        this.IllIIIIIIIlIlIllllIIllIII = 0.0;
+        this.yOffset = 0;
+    }
+
     @Override
     public void handleDrawElement(int mouseX, int mouseY, float partialTicks) {
         RenderUtil.lIIIIlIIllIIlIIlIIIlIIllI(this.x, this.y, this.x + this.width, this.y + this.height + 2, (double)8, -657931);

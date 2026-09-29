@@ -26,13 +26,31 @@ public class ChoiceElement
         this.height = 12;
     }
 
+    private String getDisplayValue(String value) {
+        if (this.setting == CheatBreaker.getInstance().globalSettings.microphone) {
+            for (int i = 0; i < value.length(); ++i) {
+                char character = value.charAt(i);
+                if (character < 32 || character > 126) {
+                    String[] devices = this.setting.getAcceptedValues();
+                    for (int device = 0; device < devices.length; ++device) {
+                        if (devices[device].equals(value)) {
+                            return "Mic-" + (device + 1);
+                        }
+                    }
+                    return "Mic";
+                }
+            }
+        }
+        return value;
+    }
+
     @Override
     public void handleDrawElement(int mouseX, int mouseY, float partialTicks) {
         boolean leftHovered = (float) mouseX > (float)(this.x + this.width - 92) * this.scale && (float) mouseX < (float)(this.x + this.width - 48) * this.scale && (float) mouseY > (float)(this.y + this.yOffset) * this.scale && (float) mouseY < (float)(this.y + 14 + this.yOffset) * this.scale;
         boolean rightHovered = (float) mouseX > (float)(this.x + this.width - 48) * this.scale && (float) mouseX < (float)(this.x + this.width - 10) * this.scale && (float) mouseY > (float)(this.y + this.yOffset) * this.scale && (float) mouseY < (float)(this.y + 14 + this.yOffset) * this.scale;
         CheatBreaker.getInstance().ubuntuMedium16px.drawString(this.setting.getLabel().toUpperCase(), this.x + 10, (float)(this.y + 4), leftHovered || rightHovered ? -1090519040 : -1895825408);
         boolean bl3 = this.setting.getLabel().toLowerCase().endsWith("color");
-        String value = this.setting.getValue().toString();
+        String value = this.getDisplayValue(this.setting.getValue().toString());
         String[] split;
         if ((split = value.split(" ")).length > 1) {
             value = split[1].substring(0, Math.min(split[1].length(), 5)).trim() + "...";
@@ -97,7 +115,7 @@ public class ChoiceElement
             Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
             for (int i = 0; i < this.setting.getAcceptedValues().length; ++i) {
                 if (!((String[])this.setting.getAcceptedValues())[i].toLowerCase().equalsIgnoreCase((String)this.setting.getValue())) continue;
-                this.llIIlllIIIIlllIllIlIlllIl = (String)this.setting.getValue();
+                this.llIIlllIIIIlllIllIlIlllIl = this.getDisplayValue((String)this.setting.getValue());
                 if (rightHovered) {
                     if (i + 1 >= this.setting.getAcceptedValues().length) {
                         this.IlllIllIlIIIIlIIlIIllIIIl = 2;

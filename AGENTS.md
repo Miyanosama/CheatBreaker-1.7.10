@@ -47,6 +47,14 @@
 - 普通服务器、置顶服务器等并行 UI 实现要分别检查绘制与点击路径，保持同一交互的视觉反馈和命中区域一致。
 - 不把机器绝对路径、玩家账号、会话令牌或完整日志写入源码与文档。构建产物、日志和临时文件留在被忽略的 `target/`；构建脚本与必要说明应纳入版本控制。
 
+## 键盘事件路由约定
+
+- 只有 `Minecraft.runTick()` 可以调用 `Keyboard.next()`；`GuiScreen.handleInput()` 只读取鼠标事件。读取一个键盘事件时，先记录当时的 `currentScreen`，随后只交给游戏或该 GUI 其中一方。界面切换后，剩余事件在下一 tick 根据新界面处理。
+- GUI 的 `handleKeyboardInput()` 负责该 GUI 的字符、快捷键和一次全局快捷键调用；游戏循环不得再次为 GUI 的按下事件调用 `func_152348_aa()`。GUI 中的 Shift+Tab 也只走 GUI 路径。
+- `PhysicalKeyboard` 和 `KeyboardPressTracker` 负责物理按键边沿。Esc 打开界面后的持续按住不能被当成新的 Esc；真实松开后再按必须正常生效。文字输入的重复字符和 `key == 0` 的输入法提交事件必须保留。
+- `Modern Keybind Handling` 只控制从 GUI 回到游戏时是否立即恢复仍按住的游戏按键；GUI 内始终禁止移动，关闭此选项后仍须保留输入法按键补偿与 Esc 去重。默认开启，以保持现有客户端体验。
+- 每次修改键盘队列、GUI 焦点或快捷键路由，都要运行 `python tools/check_keyboard_routing.py`。发布脚本会自动运行同一检查；检查覆盖路由结构和边沿状态，但仍需在 Windows 游戏内验证实际键盘与输入法行为。
+
 ## 已知限制
 
 - 当前工具是**增量打包工具**，依赖本机已有的 `target/classes/` 和 `target/test-classes/Start.class`。它不是从空目录直接生成完整客户端的独立构建系统。

@@ -18,11 +18,13 @@ import java.util.Iterator;
 public class ScoreboardModule extends AbstractModule {
     public static ModuleRule rule = ModuleRule.SCOREBOARD;
     public Setting removeNumbers;
+    public Setting fontShadow;
 
     public ScoreboardModule() {
         super("Scoreboard");
         this.setDefaultAnchor(CBGuiAnchor.RIGHT_MIDDLE);
         this.removeNumbers = new Setting(this, "Remove Scoreboard numbers").setValue(true);
+        this.fontShadow = new Setting(this, "Font Shadow").setValue(false);
         this.addEvent(GuiDrawEvent.class, this::renderReal);
         this.addEvent(RenderPreviewEvent.class, this::renderPreview);
         this.setDefaultState(true);
@@ -65,6 +67,7 @@ public class ScoreboardModule extends AbstractModule {
         Scoreboard scoreboard = objective.getScoreboard();
         Collection<Score> collection = scoreboard.func_96534_i(objective);
         boolean removeNumbers = isRemoveNumbers();
+        boolean shadow = (Boolean) this.fontShadow.getValue();
         if (collection.size() <= 15) {
             int width = fontRenderer.getStringWidth(objective.getDisplayName());
             int numbersX = width + 16;
@@ -88,17 +91,25 @@ public class ScoreboardModule extends AbstractModule {
                 }
                 Gui.drawRect(-2 + (removeNumbers ? 14 : 0), lineY, lineX, lineY + fontRenderer.FONT_HEIGHT, 0x50000000);
                 n9 = lineX - (-2 + (removeNumbers ? 14 : 0));
-                fontRenderer.drawString(string, (removeNumbers ? 16 : 0), lineY, 0x20FFFFFF);
+                this.drawText(fontRenderer, string, (removeNumbers ? 16 : 0), lineY, shadow);
                 if (!removeNumbers) {
-                    fontRenderer.drawString(string2, lineX - fontRenderer.getStringWidth(string2) - 2, lineY, 0x20FFFFFF);
+                    this.drawText(fontRenderer, string2, lineX - fontRenderer.getStringWidth(string2) - 2, lineY, shadow);
                 }
                 if (n8 != collection.size()) continue;
                 String string3 = objective.getDisplayName();
                 Gui.drawRect(-2 + (removeNumbers ? 14 : 0), lineY - fontRenderer.FONT_HEIGHT - 1, lineX, lineY - 1, 0x60000000);
                 Gui.drawRect(-2 + (removeNumbers ? 14 : 0), lineY - 1, lineX, lineY, 0x50000000);
-                fontRenderer.drawString(string3, +width / 2 - fontRenderer.getStringWidth(string3) / 2 + (removeNumbers ? 14 : 0), lineY - fontRenderer.FONT_HEIGHT, 0x20FFFFFF);
+                this.drawText(fontRenderer, string3, +width / 2 - fontRenderer.getStringWidth(string3) / 2 + (removeNumbers ? 14 : 0), lineY - fontRenderer.FONT_HEIGHT, shadow);
             }
             this.setDimensions(n9, collection.size() * fontRenderer.FONT_HEIGHT + 12);
+        }
+    }
+
+    private void drawText(FontRenderer fontRenderer, String text, int x, int y, boolean shadow) {
+        if (shadow) {
+            fontRenderer.drawStringWithShadow(text, x, y, 0x20FFFFFF);
+        } else {
+            fontRenderer.drawString(text, x, y, 0x20FFFFFF);
         }
     }
 

@@ -3,12 +3,15 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import argparse
 import hashlib
 import shutil
+import subprocess
+import sys
 
 parser = argparse.ArgumentParser(description='Package the current Java 8 class overlay for CheatBreaker.')
 parser.add_argument('--install', action='store_true', help='Also copy the JAR into the Minecraft version directory.')
 args = parser.parse_args()
 
 root = Path(__file__).resolve().parent.parent
+subprocess.run([sys.executable, str(root / 'tools/check_keyboard_routing.py')], check=True)
 classes = root / 'target' / 'classes'
 rebuilt = root / 'target' / 'rebuild-classes'
 output = root / 'target' / 'cheatbreaker-client-1.0-SNAPSHOT.jar'
@@ -26,19 +29,35 @@ minecraft_classes = [file.name for file in (rebuilt / 'net/minecraft/client').gl
                      if file.name == 'Minecraft.class' or file.name.startswith('Minecraft$')]
 borderless_classes = [file.name for file in (rebuilt / 'com/cheatbreaker/client/util/display').glob('BorderlessFullscreen*.class')]
 overlay = {
+    'com/cheatbreaker/client/CheatBreaker.class',
+    'com/cheatbreaker/client/CheatBreaker$1.class',
     *(f'com/cheatbreaker/client/util/input/{name}' for name in raw_classes),
     'com/cheatbreaker/client/util/input/PhysicalKeyboard.class',
     'com/cheatbreaker/client/util/input/PhysicalKeyboard$User32.class',
+    'com/cheatbreaker/client/util/input/KeyboardPressTracker.class',
     'com/cheatbreaker/client/util/input/ImeInput.class',
     'com/cheatbreaker/client/util/input/ImeInput$FocusEntry.class',
     'com/cheatbreaker/client/util/input/ImeInput$Imm32.class',
     'com/cheatbreaker/client/config/GlobalSettings.class',
+    'com/cheatbreaker/client/ui/AbstractGui.class',
+    'com/cheatbreaker/client/ui/module/CBModulesGui.class',
+    'com/cheatbreaker/client/ui/module/CBModulesGui$1.class',
+    'com/cheatbreaker/client/ui/element/module/ModuleListElement.class',
+    'com/cheatbreaker/client/ui/element/module/ModuleListElement$1.class',
+    'com/cheatbreaker/client/ui/element/type/ChoiceElement.class',
     'com/cheatbreaker/client/module/type/PotionStatusModule.class',
+    'com/cheatbreaker/client/module/type/ScoreboardModule.class',
     'com/cheatbreaker/client/ui/overlay/element/InputFieldElement.class',
     *(f'com/cheatbreaker/client/util/display/{name}' for name in borderless_classes),
     'com/cheatbreaker/client/ui/overlay/element/DraggableElement.class',
     'net/minecraft/MinecraftMovementInputHelper.class',
     'net/minecraft/client/gui/GuiScreen.class',
+    'net/minecraft/client/gui/GuiOptions.class',
+    'net/minecraft/client/settings/GameSettings.class',
+    'net/minecraft/client/settings/GameSettings$1.class',
+    'net/minecraft/client/settings/GameSettings$Options.class',
+    'net/minecraft/client/settings/GameSettings$Options$1.class',
+    'net/minecraft/client/settings/GameSettings$SwitchOptions.class',
     'net/minecraft/client/gui/GuiTextField.class',
     'net/minecraft/client/gui/GuiScreenBook.class',
     'net/minecraft/client/gui/achievement/GuiAchievement.class',

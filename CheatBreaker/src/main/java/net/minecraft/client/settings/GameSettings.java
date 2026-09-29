@@ -68,6 +68,7 @@ public class GameSettings
 
     /** GUI scale values */
     private static final String[] GUISCALES = new String[] {"options.guiScale.auto", "options.guiScale.small", "options.guiScale.normal", "options.guiScale.large"};
+    private static final int[] GUI_SCALE_VALUES = new int[] {0, 1, 2, 3, 5};
     private static final String[] PARTICLES = new String[] {"options.particles.all", "options.particles.decreased", "options.particles.minimal"};
     private static final String[] AMBIENT_OCCLUSIONS = new String[] {"options.ao.off", "options.ao.min", "options.ao.max"};
     private static final String[] field_152391_aS = new String[] {"options.stream.compression.low", "options.stream.compression.medium", "options.stream.compression.high"};
@@ -1138,7 +1139,16 @@ public class GameSettings
 
         if (par1EnumOptions == GameSettings.Options.GUI_SCALE)
         {
-            this.guiScale = this.guiScale + par2 & 3;
+            int current = 0;
+            for (int i = 0; i < GUI_SCALE_VALUES.length; ++i)
+            {
+                if (GUI_SCALE_VALUES[i] == this.guiScale)
+                {
+                    current = i;
+                    break;
+                }
+            }
+            this.guiScale = GUI_SCALE_VALUES[Math.floorMod(current + par2, GUI_SCALE_VALUES.length)];
         }
 
         if (par1EnumOptions == GameSettings.Options.PARTICLES)
@@ -1860,7 +1870,7 @@ public class GameSettings
             }
             else if (par1EnumOptions == GameSettings.Options.GUI_SCALE)
             {
-                return var2 + getTranslation(GUISCALES, this.guiScale);
+                return var2 + (this.guiScale == 5 ? "5x" : getTranslation(GUISCALES, this.guiScale));
             }
             else if (par1EnumOptions == GameSettings.Options.CHAT_VISIBILITY)
             {

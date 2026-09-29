@@ -292,7 +292,7 @@ public class GuiScreen extends Gui
     public void initGui() {}
 
     /**
-     * Delegates mouse and keyboard input.
+     * Delegates mouse input. Minecraft owns the keyboard event queue.
      */
     public void handleInput()
     {
@@ -305,14 +305,6 @@ public class GuiScreen extends Gui
             }
         }
 
-        if (Keyboard.isCreated())
-        {
-            while (Keyboard.next())
-            {
-                this.handleKeyboardInput();
-                if (this.mc.currentScreen != this) return;
-            }
-        }
     }
 
     /**
@@ -359,15 +351,17 @@ public class GuiScreen extends Gui
     {
         char character = Keyboard.getEventCharacter();
         int key = Keyboard.getEventKey();
-        PhysicalKeyboard.observeGameKeyEvent(key, Keyboard.getEventKeyState());
+        boolean freshKeyPress = PhysicalKeyboard.observeGameKeyEvent(key, Keyboard.getEventKeyState());
+        boolean acceptedEscape = key != Keyboard.KEY_ESCAPE || freshKeyPress && !Keyboard.isRepeatEvent();
 
         // LWJGL 2 reports committed IME text as a character event without a key press.
-        if (Keyboard.getEventKeyState() || (key == 0 && character != 0 && Character.isDefined(character)))
+        if (acceptedEscape && (Keyboard.getEventKeyState()
+                || (key == 0 && character != 0 && Character.isDefined(character))))
         {
             this.keyTyped(character, key);
         }
 
-        this.mc.func_152348_aa();
+        if (acceptedEscape || !Keyboard.getEventKeyState()) this.mc.func_152348_aa();
     }
 
     /**

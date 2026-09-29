@@ -164,6 +164,10 @@ public abstract class AbstractGui extends GuiScreen {
                 n = 2.0f;
                 break;
             }
+            case 5: {
+                n = 2.5f;
+                break;
+            }
             default: {
                 n = 1.0f;
                 break;

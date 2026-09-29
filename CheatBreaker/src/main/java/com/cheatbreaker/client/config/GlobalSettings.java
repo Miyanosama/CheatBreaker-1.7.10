@@ -52,11 +52,13 @@ public class GlobalSettings {
     public Setting worldTime;
     public Setting lookView;
     public Setting snapModules;
+    public Setting modernKeybindHandling;
     public Setting rawMouseInput;
     public Setting fullscreenMode;
     public Setting disableAchievements;
     private Setting renderSettingsLabel;
     public Setting showHudInDebug;
+    public Setting minimalBobbing;
     public Setting showChatBackground;
     public Setting shinyPots;
     public Setting showPotionInfo;
@@ -154,6 +156,9 @@ public class GlobalSettings {
         this.worldTime = new Setting(this.settingsList, "World Time").setValue(-14490).setMinMax(-22880, -6100);
         this.lookView = new Setting(this.settingsList, "Look View").setValue("Third").acceptedValues("Third", "Reverse", "First");
         this.snapModules = new Setting(this.settingsList, "Snap mods to other mods (GUI)").setValue(true);
+        this.modernKeybindHandling = new Setting(this.settingsList, "Modern Keybind Handling")
+                .onChange(value -> com.cheatbreaker.client.util.input.PhysicalKeyboard.setModernKeybindHandling((Boolean) value))
+                .setValue(true);
         this.rawMouseInput = new Setting(this.settingsList, "Raw Mouse Input")
                 .onChange(value -> com.cheatbreaker.client.util.input.RawMouseInput.setEnabled((Boolean) value))
                 .setValue(false);
@@ -164,6 +169,7 @@ public class GlobalSettings {
         this.showPotionInfo = new Setting(this.settingsList, "Show Potion info in inventory").setValue(true);
         this.showChatBackground = new Setting(this.settingsList, "Show chat background").setValue(true);
         this.showHudInDebug = new Setting(this.settingsList, "Show HUD while in debug view").setValue(false);
+        this.minimalBobbing = new Setting(this.settingsList, "Minimal Bobbing").setValue(false);
         this.shinyPots = new Setting(this.settingsList, "Shiny Pots").setValue(false);
         this.clearGlass = new Setting(this.settingsList, "Clear Glass").setValue("OFF").acceptedValues("OFF", "REGULAR", "ALL");
         this.redString = new Setting(this.settingsList, "Red String").setValue(false);

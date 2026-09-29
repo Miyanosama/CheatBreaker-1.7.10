@@ -28,6 +28,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
@@ -292,6 +293,10 @@ public class CheatBreaker implements SkinManager.SkinAvailableCallback {
 
     public float getScaleFactor() {
         switch (Minecraft.getMinecraft().gameSettings.guiScale) {
+            case 5: {
+                Minecraft minecraft = Minecraft.getMinecraft();
+                return new ScaledResolution(minecraft, minecraft.displayWidth, minecraft.displayHeight).getScaleFactor() / 2.0f;
+            }
             case 0: {
                 return 2.0f;
             }

@@ -758,7 +758,8 @@ public class EntityRenderer implements IResourceManagerReloadListener {
 
         this.hurtCameraEffect(par1);
 
-        if (this.mc.gameSettings.viewBobbing) {
+        if (this.mc.gameSettings.viewBobbing
+                && !Boolean.TRUE.equals(CheatBreaker.getInstance().getGlobalSettings().minimalBobbing.getValue())) {
             this.setupViewBobbing(par1);
         }
 

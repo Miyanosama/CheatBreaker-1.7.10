@@ -819,6 +819,7 @@ public class Minecraft implements IPlayerUsage
      */
     public void displayGuiScreen(GuiScreen p_147108_1_)
     {
+        GuiScreen previousScreen = this.currentScreen;
         if (this.currentScreen != null)
         {
             PhysicalKeyboard.synchronizeScreenKeys(this.gameSettings);
@@ -838,6 +839,10 @@ public class Minecraft implements IPlayerUsage
         {
             this.gameSettings.showDebugInfo = false;
             this.ingameGUI.getChatGUI().func_146231_a();
+        }
+
+        if (previousScreen != null && p_147108_1_ == null) {
+            PhysicalKeyboard.onScreenClosed(this.gameSettings);
         }
 
         this.currentScreen = (GuiScreen)p_147108_1_;
@@ -1885,13 +1890,16 @@ public class Minecraft implements IPlayerUsage
             {
                 GuiScreen screenAtEvent = this.currentScreen;
                 boolean keyPressed = Keyboard.getEventKeyState();
-                boolean observedPress = PhysicalKeyboard.observeGameKeyEvent(Keyboard.getEventKey(), keyPressed);
-                boolean acceptedPress = screenAtEvent == null
-                        ? observedPress
+                boolean observedPress = screenAtEvent == null
+                        ? PhysicalKeyboard.observeGameKeyEvent(Keyboard.getEventKey(), keyPressed)
                         : keyPressed;
-                KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
+                boolean acceptedPress = screenAtEvent == null
+                        ? observedPress && (Keyboard.getEventKey() != Keyboard.KEY_ESCAPE || !Keyboard.isRepeatEvent())
+                        : keyPressed;
+                boolean bindingPressed = PhysicalKeyboard.shouldActivateBinding(Keyboard.getEventKey(), keyPressed);
+                KeyBinding.setKeyBindState(Keyboard.getEventKey(), bindingPressed);
 
-                if (acceptedPress && screenAtEvent == null)
+                if (acceptedPress && screenAtEvent == null && bindingPressed)
                 {
                     KeyBinding.onTick(Keyboard.getEventKey());
                 }
@@ -1913,14 +1921,15 @@ public class Minecraft implements IPlayerUsage
                     this.field_83002_am = getSystemTime();
                 }
 
-                if (!keyPressed || acceptedPress) this.func_152348_aa();
+                // A GUI handles its own key-down event, including global shortcuts.
+                if (!keyPressed || screenAtEvent == null && acceptedPress) this.func_152348_aa();
 
                 if (acceptedPress)
                 {
 
                     CheatBreaker.getInstance().getEventBus().callEvent(new KeyboardEvent(Keyboard.getEventKey()));
 
-                    if ((PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54)) && Keyboard.getEventKey() == 15) {
+                    if (screenAtEvent == null && (PhysicalKeyboard.isKeyDown(42) || PhysicalKeyboard.isKeyDown(54)) && Keyboard.getEventKey() == 15) {
                         this.displayGuiScreen(OverlayGui.createInstance(this.currentScreen));
                     }
 
@@ -2013,6 +2022,8 @@ public class Minecraft implements IPlayerUsage
 
             if (this.currentScreen == null) {
                 for (int code : PhysicalKeyboard.pollMissingGamePresses(this.gameSettings)) {
+                    if (this.currentScreen != null) break;
+                    KeyBinding.onTick(code);
                     this.handleMissedPhysicalGameKey(code);
                 }
             }
@@ -2117,6 +2128,18 @@ public class Minecraft implements IPlayerUsage
             }
 
             this.func_147115_a(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
+        }
+        else if (Keyboard.isCreated())
+        {
+            // One owner drains the LWJGL queue. Stop at a screen change so the
+            // remaining events are routed using the new screen on the next tick.
+            this.mcProfiler.endStartSection("keyboard");
+            while (Keyboard.next())
+            {
+                GuiScreen screenAtEvent = this.currentScreen;
+                screenAtEvent.handleKeyboardInput();
+                if (this.currentScreen != screenAtEvent) break;
+            }
         }
 
         if (this.theWorld != null)
