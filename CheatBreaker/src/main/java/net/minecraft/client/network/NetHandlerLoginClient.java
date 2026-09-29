@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.EnumConnectionState;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.login.INetHandlerLoginClient;
@@ -33,13 +34,20 @@ public class NetHandlerLoginClient implements INetHandlerLoginClient
     private final Minecraft field_147394_b;
     private final GuiScreen field_147395_c;
     private final NetworkManager field_147393_d;
+    private final ServerData reconnectServer;
 
 
     public NetHandlerLoginClient(NetworkManager p_i45059_1_, Minecraft p_i45059_2_, GuiScreen p_i45059_3_)
     {
+        this(p_i45059_1_, p_i45059_2_, p_i45059_3_, null);
+    }
+
+    public NetHandlerLoginClient(NetworkManager p_i45059_1_, Minecraft p_i45059_2_, GuiScreen p_i45059_3_, ServerData reconnectServer)
+    {
         this.field_147393_d = p_i45059_1_;
         this.field_147394_b = p_i45059_2_;
         this.field_147395_c = p_i45059_3_;
+        this.reconnectServer = reconnectServer;
     }
 
     public void handleEncryptionRequest(S01PacketEncryptionRequest p_147389_1_)
@@ -105,7 +113,7 @@ public class NetHandlerLoginClient implements INetHandlerLoginClient
      */
     public void onDisconnect(IChatComponent p_147231_1_)
     {
-        this.field_147394_b.displayGuiScreen(new GuiDisconnected(this.field_147395_c, "connect.failed", p_147231_1_));
+        this.field_147394_b.displayGuiScreen(new GuiDisconnected(this.field_147395_c, "connect.failed", p_147231_1_, this.reconnectServer));
     }
 
     /**

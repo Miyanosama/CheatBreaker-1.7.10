@@ -533,6 +533,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
      * Invoked when disconnecting, the parameter is a ChatComponent describing the reason for termination
      */
     public void onDisconnect(IChatComponent p_147231_1_) {
+        ServerData reconnectServer = this.gameController.func_147104_D();
         this.gameController.loadWorld((WorldClient) null);
 
         // CB
@@ -542,10 +543,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             if (this.guiScreenServer instanceof GuiScreenRealmsProxy) {
                 this.gameController.displayGuiScreen((new DisconnectedOnlineScreen(((GuiScreenRealmsProxy) this.guiScreenServer).func_154321_a(), "disconnect.lost", p_147231_1_)).getProxy());
             } else {
-                this.gameController.displayGuiScreen(new GuiDisconnected(this.guiScreenServer, "disconnect.lost", p_147231_1_));
+                this.gameController.displayGuiScreen(new GuiDisconnected(this.guiScreenServer, "disconnect.lost", p_147231_1_, reconnectServer));
             }
         } else {
-            this.gameController.displayGuiScreen(new GuiDisconnected(new GuiMultiplayer(new GuiMainMenu()), "disconnect.lost", p_147231_1_));
+            this.gameController.displayGuiScreen(new GuiDisconnected(new GuiMultiplayer(new GuiMainMenu()), "disconnect.lost", p_147231_1_, reconnectServer));
         }
     }
 

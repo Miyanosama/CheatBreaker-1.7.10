@@ -353,9 +353,14 @@ public class RenderManager
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_BLEND);
-        float var10 = p_85094_1_.width / 2.0F;
-        AxisAlignedBB var11 = AxisAlignedBB.getBoundingBox(p_85094_2_ - (double)var10, p_85094_4_, p_85094_6_ - (double)var10, p_85094_2_ + (double)var10, p_85094_4_ + (double)p_85094_1_.height, p_85094_6_ + (double)var10);
-        RenderGlobal.drawOutlinedBoundingBox(var11, 16777215);
+        // Match the later vanilla renderer: draw the actual collision box at
+        // the entity's interpolated render position, not a box based on posY.
+        AxisAlignedBB entityBounds = p_85094_1_.boundingBox;
+        AxisAlignedBB renderBounds = entityBounds.getOffsetBoundingBox(
+                p_85094_2_ - p_85094_1_.posX,
+                p_85094_4_ - p_85094_1_.posY,
+                p_85094_6_ - p_85094_1_.posZ);
+        RenderGlobal.drawOutlinedBoundingBox(renderBounds, 16777215);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_CULL_FACE);

@@ -2,6 +2,8 @@ package net.minecraft.client.gui;
 
 import java.util.Iterator;
 import java.util.List;
+import net.minecraft.client.multiplayer.GuiConnecting;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IChatComponent;
 
@@ -11,13 +13,20 @@ public class GuiDisconnected extends GuiScreen
     private IChatComponent field_146304_f;
     private List field_146305_g;
     private final GuiScreen field_146307_h;
+    private final ServerData reconnectServer;
 
 
     public GuiDisconnected(GuiScreen p_i45020_1_, String p_i45020_2_, IChatComponent p_i45020_3_)
     {
+        this(p_i45020_1_, p_i45020_2_, p_i45020_3_, null);
+    }
+
+    public GuiDisconnected(GuiScreen p_i45020_1_, String p_i45020_2_, IChatComponent p_i45020_3_, ServerData reconnectServer)
+    {
         this.field_146307_h = p_i45020_1_;
         this.field_146306_a = I18n.format(p_i45020_2_, new Object[0]);
         this.field_146304_f = p_i45020_3_;
+        this.reconnectServer = reconnectServer;
     }
 
     /**
@@ -31,6 +40,10 @@ public class GuiDisconnected extends GuiScreen
     public void initGui()
     {
         this.buttonList.clear();
+        if (this.reconnectServer != null)
+        {
+            this.buttonList.add(new GuiButton(1, this.width / 2 - 100, this.height / 4 + 120 - 12, "Reconnect"));
+        }
         this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 120 + 12, I18n.format("gui.toMenu", new Object[0])));
         this.field_146305_g = this.fontRendererObj.listFormattedStringToWidth(this.field_146304_f.getFormattedText(), this.width - 50);
     }
@@ -40,6 +53,10 @@ public class GuiDisconnected extends GuiScreen
         if (p_146284_1_.id == 0)
         {
             this.mc.displayGuiScreen(this.field_146307_h);
+        }
+        else if (p_146284_1_.id == 1 && this.reconnectServer != null)
+        {
+            this.mc.displayGuiScreen(new GuiConnecting(this.field_146307_h, this.mc, this.reconnectServer));
         }
     }
 
