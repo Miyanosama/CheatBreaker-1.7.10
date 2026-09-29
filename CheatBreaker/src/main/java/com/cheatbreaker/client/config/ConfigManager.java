@@ -2,9 +2,13 @@ package com.cheatbreaker.client.config;
 
 import com.cheatbreaker.client.CheatBreaker;
 import com.cheatbreaker.client.module.AbstractModule;
+import com.cheatbreaker.client.ui.module.CBGuiAnchor;
 import net.minecraft.client.Minecraft;
 
 import java.io.*;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public class ConfigManager {
@@ -98,51 +102,7 @@ public class ConfigManager {
                         if (setting.getLabel().equalsIgnoreCase("label") || !setting.getLabel().equalsIgnoreCase(split[0]))
                             continue;
 
-                        switch (setting.getType()) {
-                            case BOOLEAN: {
-                                setting.setValue(Boolean.parseBoolean(split[1]));
-                                break;
-                            }
-                            case INTEGER: {
-                                if (split[1].contains("rainbow")) {
-                                    setting.rainbow = true;
-                                    int n = Integer.parseInt(split[1].split(";")[0]);
-                                    if (n > (Integer) setting.getMinimumValue() || n < (Integer) setting.getMaximumValue())
-                                        continue;
-                                    setting.setValue(n);
-                                    break;
-                                }
-                                setting.rainbow = false;
-                                int n = Integer.parseInt(split[1]);
-                                if (n > (Integer) setting.getMinimumValue() || n < (Integer) setting.getMaximumValue())
-                                    continue;
-                                setting.setValue(n);
-                                break;
-                            }
-                            case FLOAT: {
-                                float f = Float.parseFloat(split[1]);
-                                if (!(f <= (Float) setting.getMinimumValue()) || !(f >= (Float) setting.getMaximumValue()))
-                                    break;
-                                setting.setValue(f);
-                                break;
-                            }
-                            case DOUBLE: {
-                                double d = Double.parseDouble(split[1]);
-                                if (!(d <= (Double) setting.getMinimumValue()) || !(d >= (Double) setting.getMaximumValue()))
-                                    break;
-                                setting.setValue(d);
-                                break;
-                            }
-                            case STRING_ARRAY: {
-                                boolean changed = false;
-                                for (Object value : setting.getAcceptedValues()) {
-                                    if (!((String) value).equalsIgnoreCase(split[1])) continue;
-                                    changed = true;
-                                }
-                                if (!changed) break;
-                                setting.setValue(split[1]);
-                            }
-                        }
+                        applySetting(setting, split[1], false);
                     }
                 } catch (Exception exception) {
                     exception.printStackTrace();
@@ -152,12 +112,10 @@ public class ConfigManager {
         } catch (IOException iOException) {
             iOException.printStackTrace();
         }
-        this.writeGlobalConfig(file);
     }
 
     public void writeGlobalConfig(File file) {
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
+        writeAtomically(file, bufferedWriter -> {
             bufferedWriter.write("################################");
             bufferedWriter.newLine();
             bufferedWriter.write("# MC_Client: GLOBAL SETTINGS");
@@ -184,10 +142,7 @@ public class ConfigManager {
                 bufferedWriter.write("[" + profile.getName() + "," + profile.getIndex() + "]");
             }
             bufferedWriter.newLine();
-            bufferedWriter.close();
-        } catch (IOException iOException) {
-            iOException.printStackTrace();
-        }
+        });
     }
 
     public void readProfile(String name) {
@@ -200,6 +155,7 @@ public class ConfigManager {
                 module.setRenderHud(module.defaultRenderHud);
                 for (int i = 0; i < module.getSettingsList().size(); ++i) {
                     try {
+                        module.getSettingsList().get(i).rainbow = false;
                         module.getSettingsList().get(i).setValue(module.getDefaultSettingsValues().get(i), false);
                     } catch (Exception exception) {
                         exception.printStackTrace();
@@ -214,6 +170,19 @@ public class ConfigManager {
             this.writeProfile(name);
             return;
         }
+        // Older profiles do not contain settings added by newer client versions.
+        // Reset first so a missing key uses its default rather than the value
+        // left behind by the previously active profile.
+        for (AbstractModule module : CheatBreaker.getInstance().moduleManager.modules) {
+            module.setState(module.defaultState);
+            module.setAnchor(module.defaultGuiAnchor);
+            module.setTranslations(module.defaultXTranslation, module.defaultYTranslation);
+            module.setRenderHud(module.defaultRenderHud);
+            for (int i = 0; i < module.getSettingsList().size(); ++i) {
+                module.getSettingsList().get(i).rainbow = false;
+                module.getSettingsList().get(i).setValue(module.getDefaultSettingsValues().get(i), false);
+            }
+        }
         ArrayList<AbstractModule> arrayList = new ArrayList<>(CheatBreaker.getInstance().moduleManager.modules);
         try {
             String line;
@@ -224,6 +193,7 @@ public class ConfigManager {
                     String[] split;
                     if (line.startsWith("#") || line.length() == 0) continue;
                     if (line.startsWith("[")) {
+                        object = null;
                         for (AbstractModule module : arrayList) {
                             if (!("[" + module.getName() + "]").equalsIgnoreCase(line)) continue;
                             object = module;
@@ -238,19 +208,28 @@ public class ConfigManager {
                             switch (split[0]) {
                                 case "State": {
                                     if (object.isStaffModule()) break;
-                                    object.setState(Boolean.parseBoolean(split[1]));
+                                    Object value = ConfigValueCodec.parse(Setting.Type.BOOLEAN, split[1], null, null, null);
+                                    if (value != null) object.setState((Boolean) value);
                                     break;
                                 }
                                 case "RenderHUD": {
-                                    object.setRenderHud(Boolean.parseBoolean(split[1]));
+                                    Object value = ConfigValueCodec.parse(Setting.Type.BOOLEAN, split[1], null, null, null);
+                                    if (value != null) object.setRenderHud((Boolean) value);
+                                    break;
+                                }
+                                case "Anchor": {
+                                    object.setAnchor(CBGuiAnchor.valueOf(split[1]));
                                     break;
                                 }
                                 case "xTranslation": {
-                                    object.setXTranslation(Float.parseFloat(split[1]));
+                                    Object value = ConfigValueCodec.parse(Setting.Type.FLOAT, split[1], null, null, null);
+                                    if (value != null) object.setXTranslation((Float) value);
                                     break;
                                 }
                                 case "yTranslation": {
-                                    object.setYTranslation(Float.parseFloat(split[1]));
+                                    Object value = ConfigValueCodec.parse(Setting.Type.FLOAT, split[1], null, null, null);
+                                    if (value != null) object.setYTranslation((Float) value);
+                                    break;
                                 }
                             }
                         } catch (Exception exception) {
@@ -264,57 +243,7 @@ public class ConfigManager {
                         if (setting.getLabel().equalsIgnoreCase("label") || !setting.getLabel().equalsIgnoreCase(split[0]))
                             continue;
 
-                        switch (setting.getType()) {
-                            case BOOLEAN: {
-                                setting.setValue(Boolean.parseBoolean(split[1]));
-                                break;
-                            }
-                            case INTEGER: {
-                                if (split[1].contains("rainbow")) {
-                                    Object[] arrobject = split[1].split(";");
-                                    int n = Integer.parseInt((String) arrobject[0]);
-                                    setting.rainbow = true;
-                                    if (n > (Integer) setting.getMinimumValue() || n < (Integer) setting.getMaximumValue())
-                                        continue;
-                                    setting.setValue(n);
-                                    break;
-                                }
-                                int n = Integer.parseInt(split[1]);
-                                setting.rainbow = false;
-                                if (n > (Integer) setting.getMinimumValue() || n < (Integer) setting.getMaximumValue())
-                                    continue;
-                                setting.setValue(n);
-                                break;
-                            }
-                            case FLOAT: {
-                                float f = Float.parseFloat(split[1]);
-                                if (!(f <= (Float) setting.getMinimumValue()) || !(f >= (Float) setting.getMaximumValue()))
-                                    break;
-                                setting.setValue(f);
-                                break;
-                            }
-                            case DOUBLE: {
-                                double d = Double.parseDouble(split[1]);
-                                if (!(d <= (Double) setting.getMinimumValue()) || !(d >= (Double) setting.getMaximumValue()))
-                                    break;
-                                setting.setValue(d);
-                                break;
-                            }
-                            case STRING_ARRAY: {
-                                boolean bl = false;
-                                for (Object object3 : setting.getAcceptedValues()) {
-                                    if (!((String) object3).equalsIgnoreCase(split[1])) continue;
-                                    bl = true;
-                                }
-                                if (!bl) break;
-                                setting.setValue(split[1]);
-                                break;
-                            }
-                            case STRING: {
-                                if (setting.getLabel().equalsIgnoreCase("label")) break;
-                                setting.setValue(split[1].replaceAll("&([abcdefghijklmrABCDEFGHIJKLMNR0-9])|(&$)", "§$1"));
-                            }
-                        }
+                        applySetting(setting, split[1], true);
                     }
                 } catch (Exception exception) {
                     exception.printStackTrace();
@@ -323,6 +252,43 @@ public class ConfigManager {
             bufferedReader.close();
         } catch (IOException iOException) {
             iOException.printStackTrace();
+        }
+    }
+
+    private static void applySetting(Setting setting, String stored, boolean profileSetting) {
+        boolean rainbow = setting.getType() == Setting.Type.INTEGER && stored.endsWith(";rainbow");
+        String raw = rainbow ? stored.substring(0, stored.length() - ";rainbow".length()) : stored;
+        Object value = ConfigValueCodec.parse(setting.getType(), raw,
+                setting.getMinimumValue(), setting.getMaximumValue(), setting.getAcceptedValues());
+        if (value == null) return;
+        if (profileSetting && setting.getType() == Setting.Type.STRING) {
+            value = ((String) value).replaceAll("&([0-9a-fk-orA-FK-OR])", "\u00A7$1");
+        }
+        setting.setValue(value, false);
+        if (setting.getType() == Setting.Type.INTEGER) setting.rainbow = rainbow;
+    }
+
+    private interface ConfigWriter {
+        void write(BufferedWriter writer) throws IOException;
+    }
+
+    private static void writeAtomically(File target, ConfigWriter content) {
+        File staged = null;
+        try {
+            staged = File.createTempFile(target.getName(), ".tmp", target.getParentFile());
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(staged))) {
+                content.write(writer);
+            }
+            try {
+                Files.move(staged.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException unsupported) {
+                Files.move(staged.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException error) {
+            error.printStackTrace();
+        } finally {
+            if (staged != null) staged.delete();
         }
     }
 
@@ -337,8 +303,7 @@ public class ConfigManager {
             return;
         }
         ArrayList<AbstractModule> arrayList = new ArrayList<>(CheatBreaker.getInstance().moduleManager.modules);
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(profileFile));
+        writeAtomically(profileFile, bufferedWriter -> {
             bufferedWriter.write("################################");
             bufferedWriter.newLine();
             bufferedWriter.write("# MC_Client: MODULE SETTINGS");
@@ -351,6 +316,8 @@ public class ConfigManager {
                 bufferedWriter.newLine();
                 bufferedWriter.write("-State=" + Module.isEnabled());
                 bufferedWriter.newLine();
+                bufferedWriter.write("-Anchor=" + Module.getGuiAnchor());
+                bufferedWriter.newLine();
                 bufferedWriter.write("-xTranslation=" + Module.getXTranslation());
                 bufferedWriter.newLine();
                 bufferedWriter.write("-yTranslation=" + Module.getYTranslation());
@@ -360,7 +327,7 @@ public class ConfigManager {
                 for (Setting cBSetting : Module.getSettingsList()) {
                     if (cBSetting.getLabel().equalsIgnoreCase("label")) continue;
                     if (cBSetting.getType() == Setting.Type.STRING) {
-                        bufferedWriter.write(cBSetting.getLabel() + "=" + (cBSetting.getValue() + "").replaceAll("§", "&"));
+                        bufferedWriter.write(cBSetting.getLabel() + "=" + (cBSetting.getValue() + "").replace('\u00A7', '&'));
                     } else if (cBSetting.rainbow) {
                         bufferedWriter.write(cBSetting.getLabel() + "=" + cBSetting.getValue() + ";rainbow");
                     } else {
@@ -370,10 +337,7 @@ public class ConfigManager {
                 }
                 bufferedWriter.newLine();
             }
-            bufferedWriter.close();
-        } catch (IOException iOException) {
-            iOException.printStackTrace();
-        }
+        });
     }
 
 }

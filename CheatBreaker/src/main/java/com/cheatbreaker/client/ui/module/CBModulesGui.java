@@ -58,6 +58,7 @@ public class CBModulesGui extends GuiScreen {
     @Override
     public void onGuiClosed() {
         Keyboard.enableRepeatEvents(false);
+        CheatBreaker.getInstance().configManager.write();
         //this.mc.entityRenderer.deactivateShader();
     }
 
@@ -543,9 +544,6 @@ public class CBModulesGui extends GuiScreen {
 
     @Override
     public void keyTyped(char c, int n) {
-        if (n == 1) {
-            CheatBreaker.getInstance().configManager.write();
-        }
         super.keyTyped(c, n);
         if (n == Keyboard.KEY_Z && isCtrlKeyDown()) {
             if (!this.undoList.isEmpty()) {

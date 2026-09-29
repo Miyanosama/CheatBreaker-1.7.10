@@ -612,6 +612,20 @@ public class GuiTextField extends Gui
         return this.field_146213_o;
     }
 
+    /** Caret and text-field rectangle in scaled GUI coordinates for the Windows IME. */
+    public int[] getImeCaretBounds()
+    {
+        int left = this.field_146215_m ? this.field_146209_f + 4 : this.field_146209_f;
+        int top = this.field_146215_m ? this.field_146210_g + (this.field_146219_i - 8) / 2 : this.field_146210_g;
+        String visible = this.field_146211_a.trimStringToWidth(
+                this.field_146216_j.substring(this.field_146225_q), this.func_146200_o());
+        int cursor = Math.max(0, Math.min(this.field_146224_r - this.field_146225_q, visible.length()));
+        int caretX = Math.min(this.field_146209_f + this.field_146218_h,
+                left + this.field_146211_a.getStringWidth(visible.substring(0, cursor)));
+        return new int[] {caretX, top, this.field_146209_f, this.field_146210_g,
+                this.field_146209_f + this.field_146218_h, this.field_146210_g + this.field_146219_i};
+    }
+
     public void func_146184_c(boolean p_146184_1_)
     {
         this.field_146226_p = p_146184_1_;

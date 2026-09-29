@@ -53,6 +53,7 @@ public class GlobalSettings {
     public Setting lookView;
     public Setting snapModules;
     public Setting modernKeybindHandling;
+    public Setting confirmDisconnection;
     public Setting rawMouseInput;
     public Setting fullscreenMode;
     public Setting disableAchievements;
@@ -159,6 +160,7 @@ public class GlobalSettings {
         this.modernKeybindHandling = new Setting(this.settingsList, "Modern Keybind Handling")
                 .onChange(value -> com.cheatbreaker.client.util.input.PhysicalKeyboard.setModernKeybindHandling((Boolean) value))
                 .setValue(true);
+        this.confirmDisconnection = new Setting(this.settingsList, "Confirm Disconnection").setValue(false);
         this.rawMouseInput = new Setting(this.settingsList, "Raw Mouse Input")
                 .onChange(value -> com.cheatbreaker.client.util.input.RawMouseInput.setEnabled((Boolean) value))
                 .setValue(false);

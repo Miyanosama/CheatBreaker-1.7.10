@@ -27,12 +27,14 @@ public class GuiIngameMenu extends GuiScreen
     private boolean lIIIIllIIlIlIllIIIlIllIlI = false;
     private CosineFade IlllIllIlIIIIlIIlIIllIIIl = new CosineFade(1500L);
     private GuiButton modsButton;
+    private boolean disconnectConfirmationPending;
 
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
     public void initGui()
     {
+        this.disconnectConfirmationPending = false;
         this.field_146445_a = 0;
         this.buttonList.clear();
         byte var1 = -16;
@@ -98,10 +100,18 @@ public class GuiIngameMenu extends GuiScreen
                 break;
 
             case 1:
+                if (!this.mc.isIntegratedServerRunning()
+                        && (Boolean) CheatBreaker.getInstance().getGlobalSettings().confirmDisconnection.getValue()
+                        && !this.disconnectConfirmationPending) {
+                    this.disconnectConfirmationPending = true;
+                    p_146284_1_.displayString = "Click Again to Confirm";
+                    break;
+                }
                 p_146284_1_.enabled = false;
                 this.mc.theWorld.sendQuittingDisconnectingPacket();
                 this.mc.loadWorld(null);
                 this.mc.displayGuiScreen(new GuiMainMenu());
+                break;
 
             case 2:
             case 3:

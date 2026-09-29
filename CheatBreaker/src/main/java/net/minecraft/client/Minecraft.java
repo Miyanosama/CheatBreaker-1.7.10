@@ -2323,6 +2323,8 @@ public class Minecraft implements IPlayerUsage
      */
     public void loadWorld(WorldClient p_71353_1_, String p_71353_2_)
     {
+        long worldLoadStarted = System.nanoTime();
+        long rendererSetupMs = 0L;
         if (p_71353_1_ == null)
         {
             NetHandlerPlayClient var3 = this.getNetHandler();
@@ -2371,7 +2373,9 @@ public class Minecraft implements IPlayerUsage
             CheatBreaker.getInstance().getEventBus().callEvent(new LoadWorldEvent(p_71353_1_));
             if (this.renderGlobal != null)
             {
+                long rendererSetupStarted = System.nanoTime();
                 this.renderGlobal.setWorldAndLoadRenderers(p_71353_1_);
+                rendererSetupMs = (System.nanoTime() - rendererSetupStarted) / 1000000L;
             }
 
             if (this.effectRenderer != null)
@@ -2397,7 +2401,15 @@ public class Minecraft implements IPlayerUsage
             this.thePlayer = null;
         }
 
-        System.gc();
+        // A full collection here stalls the client thread during server login and
+        // keeps the last connection frame on screen with unresponsive controls.
+        // Normal GC can reclaim the old world's unreachable objects later.
+        long worldLoadMs = (System.nanoTime() - worldLoadStarted) / 1000000L;
+        if (worldLoadMs >= 200L) {
+            logger.info("World transition (" + (p_71353_1_ == null ? "unload" : "load")
+                    + "): " + worldLoadMs + " ms, renderer setup "
+                    + rendererSetupMs + " ms");
+        }
         this.systemTime = 0L;
     }
 

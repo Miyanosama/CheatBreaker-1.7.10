@@ -48,7 +48,7 @@ public class GuiDisconnected extends GuiScreen
      */
     public void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_)
     {
-        this.drawDefaultBackground();
+        this.drawConnectionBackground();
         this.drawCenteredString(this.fontRendererObj, this.field_146306_a, this.width / 2, this.height / 2 - 50, 11184810);
         int var4 = this.height / 2 - 30;
 

@@ -419,6 +419,21 @@ public class InputFieldElement extends AbstractElement {
         return this.lIIlIlIllIIlIIIlIIIlllIII;
     }
 
+    /** Caret and text-field rectangle in scaled GUI coordinates for the Windows IME. */
+    public int[] getImeCaretBounds() {
+        float left = this.IlIlllIIIIllIllllIllIIlIl ? this.x + 4 : this.x;
+        float top = this.IlIlllIIIIllIllllIllIIlIl ? this.y + (this.height - 8) / 2.0f : this.y;
+        String visible = this.fontRenderer.lIIIIlIIllIIlIIlIIIlIIllI(
+                this.IllIIIIIIIlIlIllllIIllIII.substring(this.llIlIIIlIIIIlIlllIlIIIIll),
+                this.IIIIIIlIlIlIllllllIlllIlI());
+        int cursor = Math.max(0, Math.min(this.IIIlIIllllIIllllllIlIIIll
+                - this.llIlIIIlIIIIlIlllIlIIIIll, visible.length()));
+        int caretX = Math.min(Math.round(this.x + this.width),
+                Math.round(left) + this.fontRenderer.getStringWidth(visible.substring(0, cursor)));
+        return new int[] {caretX, Math.round(top), Math.round(this.x), Math.round(this.y),
+                Math.round(this.x + this.width), Math.round(this.y + this.height)};
+    }
+
     public void IlllIIIlIlllIllIlIIlllIlI(boolean bl) {
         this.IIIlllIIIllIllIlIIIIIIlII = bl;
     }

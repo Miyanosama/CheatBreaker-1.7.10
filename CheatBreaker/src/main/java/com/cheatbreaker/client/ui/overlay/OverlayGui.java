@@ -205,6 +205,7 @@ public class OverlayGui extends AbstractGui {
     @Override
     public void onGuiClosed() {
         Keyboard.enableRepeatEvents(false);
+        CheatBreaker.getInstance().configManager.write();
         this.context = null;
         this.handleClose();
         //this.mc.entityRenderer.unloadSounds();

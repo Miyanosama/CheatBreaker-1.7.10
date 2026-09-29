@@ -94,7 +94,9 @@ public class Setting {
             if (createProfile) {
                 CheatBreaker.getInstance().createNewProfile();
             }
-        } else if (this.container != null) {
+        } else if (this.container != null && this.value == null) {
+            // Only the first value is the module default. Profile changes must
+            // not append their values to the defaults list.
             this.container.getDefaultSettingsValues().add(object);
         }
         this.value = object;

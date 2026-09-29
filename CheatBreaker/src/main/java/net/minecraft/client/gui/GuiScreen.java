@@ -326,6 +326,7 @@ public class GuiScreen extends Gui
             this.eventButton = var3;
             this.lastMouseEvent = Minecraft.getSystemTime();
             this.mouseClicked(var1, var2, this.eventButton);
+            if (this.mc.currentScreen == this) ImeInput.update(this);
         }
         else if (var3 != -1)
         {
@@ -359,6 +360,7 @@ public class GuiScreen extends Gui
                 || (key == 0 && character != 0 && Character.isDefined(character))))
         {
             this.keyTyped(character, key);
+            if (this.mc.currentScreen == this) ImeInput.update(this);
         }
 
         if (acceptedEscape || !Keyboard.getEventKeyState()) this.mc.func_152348_aa();
@@ -377,6 +379,12 @@ public class GuiScreen extends Gui
     public void drawDefaultBackground()
     {
         this.func_146270_b(0);
+    }
+
+    /** Opaque CheatBreaker connection background shared by login and error screens. */
+    protected void drawConnectionBackground()
+    {
+        drawGradientRect(0, 0, this.width, this.height, 0xFF141414, 0xFF0A0A0A);
     }
 
     public void func_146270_b(int p_146270_1_)

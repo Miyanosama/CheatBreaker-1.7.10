@@ -23,8 +23,8 @@ public class GuiConnecting extends GuiScreen
 {
     private static final AtomicInteger field_146372_a = new AtomicInteger(0);
     private static final Logger logger = LogManager.getLogger();
-    private NetworkManager field_146371_g;
-    private boolean field_146373_h;
+    private volatile NetworkManager field_146371_g;
+    private volatile boolean field_146373_h;
     private final GuiScreen field_146374_i;
 
 
@@ -153,7 +153,7 @@ public class GuiConnecting extends GuiScreen
      */
     public void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_)
     {
-        this.drawDefaultBackground();
+        this.drawConnectionBackground();
 
         if (this.field_146371_g == null)
         {

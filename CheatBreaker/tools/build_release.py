@@ -2,6 +2,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import argparse
 import hashlib
+import os
 import shutil
 import subprocess
 import sys
@@ -17,6 +18,18 @@ rebuilt = root / 'target' / 'rebuild-classes'
 output = root / 'target' / 'cheatbreaker-client-1.0-SNAPSHOT.jar'
 if not classes.is_dir() or not rebuilt.is_dir():
     raise SystemExit('Missing target/classes or target/rebuild-classes; compile the base and changed sources first')
+java_compiler = shutil.which('javac')
+if java_compiler is None:
+    raise SystemExit('Java 8 javac is required for the config value checks')
+java_runtime = Path(java_compiler).with_name('java.exe' if os.name == 'nt' else 'java')
+config_check_classes = root / 'target' / 'config-check-classes'
+config_check_classes.mkdir(parents=True, exist_ok=True)
+config_check_classpath = os.pathsep.join((str(rebuilt), str(classes), str(config_check_classes)))
+subprocess.run([java_compiler, '-encoding', 'UTF-8', '-source', '8', '-target', '8',
+                '-cp', config_check_classpath, '-d', str(config_check_classes),
+                str(root / 'src/test/java/com/cheatbreaker/client/config/ConfigValueCodecTest.java')], check=True)
+subprocess.run([str(java_runtime), '-cp', config_check_classpath,
+                'com.cheatbreaker.client.config.ConfigValueCodecTest'], check=True)
 raw_classes = [
     'RawMouseInput.class',
     'RawMouseInput$Kernel32.class',
@@ -38,7 +51,19 @@ overlay = {
     'com/cheatbreaker/client/util/input/ImeInput.class',
     'com/cheatbreaker/client/util/input/ImeInput$FocusEntry.class',
     'com/cheatbreaker/client/util/input/ImeInput$Imm32.class',
+    'com/cheatbreaker/client/util/input/ImeInput$User32.class',
+    'com/cheatbreaker/client/util/input/ImeInput$Point.class',
+    'com/cheatbreaker/client/util/input/ImeInput$Rect.class',
+    'com/cheatbreaker/client/util/input/ImeInput$CandidateForm.class',
+    'com/cheatbreaker/client/util/input/ImeInput$CompositionForm.class',
     'com/cheatbreaker/client/config/GlobalSettings.class',
+    'com/cheatbreaker/client/config/Setting.class',
+    'com/cheatbreaker/client/config/Setting$Type.class',
+    'com/cheatbreaker/client/config/ConfigManager.class',
+    'com/cheatbreaker/client/config/ConfigManager$1.class',
+    'com/cheatbreaker/client/config/ConfigManager$ConfigWriter.class',
+    'com/cheatbreaker/client/config/ConfigValueCodec.class',
+    'com/cheatbreaker/client/config/ConfigValueCodec$1.class',
     'com/cheatbreaker/client/ui/AbstractGui.class',
     'com/cheatbreaker/client/ui/module/CBModulesGui.class',
     'com/cheatbreaker/client/ui/module/CBModulesGui$1.class',
@@ -48,10 +73,16 @@ overlay = {
     'com/cheatbreaker/client/module/type/PotionStatusModule.class',
     'com/cheatbreaker/client/module/type/ScoreboardModule.class',
     'com/cheatbreaker/client/ui/overlay/element/InputFieldElement.class',
+    'com/cheatbreaker/client/ui/overlay/OverlayGui.class',
     *(f'com/cheatbreaker/client/util/display/{name}' for name in borderless_classes),
     'com/cheatbreaker/client/ui/overlay/element/DraggableElement.class',
     'net/minecraft/MinecraftMovementInputHelper.class',
     'net/minecraft/client/gui/GuiScreen.class',
+    'net/minecraft/client/gui/GuiDownloadTerrain.class',
+    'net/minecraft/client/gui/GuiDisconnected.class',
+    'net/minecraft/client/multiplayer/GuiConnecting.class',
+    'net/minecraft/client/multiplayer/GuiConnecting$1.class',
+    'net/minecraft/client/gui/GuiIngameMenu.class',
     'net/minecraft/client/gui/GuiOptions.class',
     'net/minecraft/client/settings/GameSettings.class',
     'net/minecraft/client/settings/GameSettings$1.class',
