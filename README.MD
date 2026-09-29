@@ -1,7 +1,5 @@
 # CheatBreaker
 
-This repository contains the source-code for the CheatBreaker reverse engineering efforts made by Freddie & myself.
+CheatBreaker is one of the first client-sided anticheat clients ever to exist in the competitive Minecraft community. This repository contains Miyano's modified version of CheatBreaker.
 
-JHalt visited (again?) 27/06/2021
-
-AI 开发与增量构建流程见 [AGENTS.md](AGENTS.md)。
+To develop this client further with the help of AI, see [AGENTS.md](AGENTS.md).
