@@ -544,6 +544,8 @@ public class CBModulesGui extends GuiScreen {
 
     @Override
     public void keyTyped(char c, int n) {
+        if (this.currentScrollableElement instanceof ModuleListElement
+                && ((ModuleListElement)this.currentScrollableElement).handleKeyTyped(n)) return;
         super.keyTyped(c, n);
         if (n == Keyboard.KEY_Z && isCtrlKeyDown()) {
             if (!this.undoList.isEmpty()) {

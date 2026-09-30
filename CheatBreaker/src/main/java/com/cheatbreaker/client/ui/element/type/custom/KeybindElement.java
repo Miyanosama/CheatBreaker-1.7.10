@@ -27,11 +27,8 @@ public class KeybindElement
         boolean bl = (float) mouseX > (float)(this.x + this.width - 48) * this.scale && (float) mouseX < (float)(this.x + this.width - 10) * this.scale && (float) mouseY > (float)(this.y + this.yOffset) * this.scale && (float) mouseY < (float)(this.y + 10 + this.yOffset) * this.scale;
         boolean bl2 = (float) mouseX > (float)(this.x + this.width - 92) * this.scale && (float) mouseX < (float)(this.x + this.width - 48) * this.scale && (float) mouseY > (float)(this.y + this.yOffset) * this.scale && (float) mouseY < (float)(this.y + 10 + this.yOffset) * this.scale;
         CheatBreaker.getInstance().ubuntuMedium16px.drawString(this.lIIIIlIIllIIlIIlIIIlIIllI.getLabel().toUpperCase(), this.x + 10, (float)(this.y + 4), bl2 || bl ? -1090519040 : -1895825408);
-        if (this.lIIIIllIIlIlIllIIIlIllIlI && Keyboard.getEventKeyState()) {
-            Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
-            this.lIIIIlIIllIIlIIlIIIlIIllI.setValue(Keyboard.getEventKey());
+        if (!this.lIIIIllIIlIlIllIIIlIllIlI) {
             this.IllIIIIIIIlIlIllllIIllIII.displayString = Keyboard.getKeyName((Integer)this.lIIIIlIIllIIlIIlIIIlIIllI.getValue());
-            this.lIIIIllIIlIlIllIIIlIllIlI = false;
         }
         this.IllIIIIIIIlIlIllllIIllIII.yOffset = this.yOffset;
         this.IllIIIIIIIlIlIllllIIllIII.setDimensions(this.x + this.width - 100, this.y, 96, 18);
@@ -45,5 +42,21 @@ public class KeybindElement
             this.lIIIIllIIlIlIllIIIlIllIlI = true;
             this.IllIIIIIIIlIlIllllIIllIII.displayString = "<PRESS ANY KEY>";
         }
+    }
+
+    public boolean handleKeyTyped(int key) {
+        if (!this.lIIIIllIIlIlIllIIIlIllIlI) return false;
+        if (key == Keyboard.KEY_NONE) return true;
+        this.lIIIIllIIlIlIllIIIlIllIlI = false;
+        if (key != Keyboard.KEY_ESCAPE) {
+            int boundKey = key == Keyboard.KEY_DELETE || key == Keyboard.KEY_BACK ? 0 : key;
+            if (boundKey >= 0 && boundKey <= 255) {
+                this.lIIIIlIIllIIlIIlIIIlIIllI.setValue(boundKey);
+                Minecraft.getMinecraft().getSoundHandler().playSound(
+                        PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
+            }
+        }
+        this.IllIIIIIIIlIlIllllIIllIII.displayString = Keyboard.getKeyName((Integer)this.lIIIIlIIllIIlIIlIIIlIIllI.getValue());
+        return true;
     }
 }

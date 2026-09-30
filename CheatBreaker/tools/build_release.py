@@ -40,6 +40,8 @@ raw_classes = [
 ]
 minecraft_classes = [file.name for file in (rebuilt / 'net/minecraft/client').glob('Minecraft*.class')
                      if file.name == 'Minecraft.class' or file.name.startswith('Minecraft$')]
+screenshot_classes = [file.name for file in (rebuilt / 'net/minecraft/util').glob('ScreenShotHelper*.class')
+                      if file.name == 'ScreenShotHelper.class' or file.name.startswith('ScreenShotHelper$')]
 borderless_classes = [file.name for file in (rebuilt / 'com/cheatbreaker/client/util/display').glob('BorderlessFullscreen*.class')]
 overlay = {
     'com/cheatbreaker/client/CheatBreaker.class',
@@ -64,11 +66,17 @@ overlay = {
     'com/cheatbreaker/client/config/ConfigManager$ConfigWriter.class',
     'com/cheatbreaker/client/config/ConfigValueCodec.class',
     'com/cheatbreaker/client/config/ConfigValueCodec$1.class',
+    'com/cheatbreaker/client/module/ModuleManager.class',
+    'com/cheatbreaker/client/module/ToggleKeybindModule.class',
+    'com/cheatbreaker/client/module/type/BlockOverlayModule.class',
+    'com/cheatbreaker/client/module/type/HitboxesModule.class',
     'com/cheatbreaker/client/ui/AbstractGui.class',
     'com/cheatbreaker/client/ui/module/CBModulesGui.class',
     'com/cheatbreaker/client/ui/module/CBModulesGui$1.class',
     'com/cheatbreaker/client/ui/element/module/ModuleListElement.class',
     'com/cheatbreaker/client/ui/element/module/ModuleListElement$1.class',
+    'com/cheatbreaker/client/ui/element/module/ModulePreviewElement.class',
+    'com/cheatbreaker/client/ui/element/type/custom/KeybindElement.class',
     'com/cheatbreaker/client/ui/element/type/ChoiceElement.class',
     'com/cheatbreaker/client/module/type/PotionStatusModule.class',
     'com/cheatbreaker/client/module/type/ScoreboardModule.class',
@@ -100,15 +108,24 @@ overlay = {
     'net/minecraft/client/network/NetHandlerLoginClient.class',
     'net/minecraft/client/network/NetHandlerLoginClient$1.class',
     'net/minecraft/client/renderer/entity/RenderManager.class',
+    'net/minecraft/client/renderer/RenderGlobal.class',
+    'net/minecraft/client/renderer/RenderGlobal$1.class',
     'net/minecraft/client/renderer/EntityRenderer.class',
     'net/minecraft/client/renderer/InventoryEffectRenderer.class',
     'net/minecraft/util/MouseHelper.class',
+    *(f'net/minecraft/util/{name}' for name in screenshot_classes),
     *(f'net/minecraft/client/{name}' for name in minecraft_classes),
     'net/minecraft/src/Config.class',
+}
+source_resources = {
+    'assets/minecraft/client/icons/mods/block_overlay.png',
 }
 for name in overlay:
     if not (rebuilt / name).is_file():
         raise SystemExit(f'Missing freshly compiled class: {name}')
+for name in source_resources:
+    if not (root / 'src/main/resources' / name).is_file():
+        raise SystemExit(f'Missing source resource: {name}')
 
 with ZipFile(output, 'w', ZIP_DEFLATED) as jar:
     jar.writestr('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\nMain-Class: Start\r\n\r\n')
@@ -116,13 +133,15 @@ with ZipFile(output, 'w', ZIP_DEFLATED) as jar:
         if not file.is_file():
             continue
         name = file.relative_to(classes).as_posix()
-        if name in overlay or name.upper() == 'META-INF/MANIFEST.MF' or name == 'Start.class':
+        if name in overlay or name in source_resources or name.upper() == 'META-INF/MANIFEST.MF' or name == 'Start.class':
             continue
         if name.startswith('com/cheatbreaker/client/util/input/RawMouseInput'):
             continue
         jar.write(file, name)
     for name in sorted(overlay):
         jar.write(rebuilt / name, name)
+    for name in sorted(source_resources):
+        jar.write(root / 'src/main/resources' / name, name)
     start_class = root / 'target' / 'test-classes' / 'Start.class'
     if not start_class.is_file():
         raise SystemExit('Missing target/test-classes/Start.class')
@@ -134,6 +153,8 @@ with ZipFile(output) as jar:
     names = set(jar.namelist())
     if not overlay <= names:
         raise SystemExit('JAR is missing a freshly compiled class')
+    if not source_resources <= names:
+        raise SystemExit('JAR is missing a source resource')
     stale = {name for name in names if name.startswith('com/cheatbreaker/client/util/input/RawMouseInput') and name not in overlay}
     if stale:
         raise SystemExit(f'JAR contains stale Raw Input classes: {stale}')

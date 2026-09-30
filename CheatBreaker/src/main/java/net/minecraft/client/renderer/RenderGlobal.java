@@ -2277,6 +2277,13 @@ public class RenderGlobal implements IWorldAccess
     {
         if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
         {
+            com.cheatbreaker.client.module.type.BlockOverlayModule blockOverlay =
+                    com.cheatbreaker.client.CheatBreaker.getInstance().moduleManager.blockOverlay;
+            if (blockOverlay != null && blockOverlay.isEnabled())
+            {
+                blockOverlay.renderSelectionBox(this.theWorld, par1EntityPlayer, par2MovingObjectPosition, par4);
+                return;
+            }
             GL11.glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(770, 771, 1, 0);
             GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);

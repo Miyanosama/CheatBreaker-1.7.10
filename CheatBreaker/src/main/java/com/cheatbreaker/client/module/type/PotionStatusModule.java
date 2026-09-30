@@ -42,8 +42,6 @@ public class PotionStatusModule extends AbstractModule {
             this.hideInInventory = new Setting(this, "Hide In Inventory").setValue(false);
             this.showWhileTying = new Setting(this, "Show While Typing").setValue(true);
             this.showEffectName = new Setting(this, "Effect Name").setValue(true);
-            //this.showInInventory = new Setting(this, "Show Potion info in inventory").setValue(false);
-            // commented out due to there being two of the same option.
         }
         new Setting(this, "label").setValue("Blink Options");
         {

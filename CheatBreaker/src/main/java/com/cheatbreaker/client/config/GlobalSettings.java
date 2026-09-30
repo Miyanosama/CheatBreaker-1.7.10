@@ -62,7 +62,6 @@ public class GlobalSettings {
     public Setting minimalBobbing;
     public Setting showChatBackground;
     public Setting shinyPots;
-    public Setting showPotionInfo;
     public Setting clearGlass;
     public Setting redString;
     public Setting transparentBackground;
@@ -168,7 +167,6 @@ public class GlobalSettings {
                 .setValue("Borderless").acceptedValues("Borderless", "Exclusive");
         this.disableAchievements = new Setting(this.settingsList, "Disable Achievements").setValue(false);
         this.renderSettingsLabel = new Setting(this.settingsList, "label").setValue("Render Settings");
-        this.showPotionInfo = new Setting(this.settingsList, "Show Potion info in inventory").setValue(true);
         this.showChatBackground = new Setting(this.settingsList, "Show chat background").setValue(true);
         this.showHudInDebug = new Setting(this.settingsList, "Show HUD while in debug view").setValue(false);
         this.minimalBobbing = new Setting(this.settingsList, "Minimal Bobbing").setValue(false);

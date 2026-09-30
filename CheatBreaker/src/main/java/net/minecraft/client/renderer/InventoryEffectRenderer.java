@@ -30,7 +30,6 @@ public abstract class InventoryEffectRenderer extends GuiContainer
 
         this.field_147045_u = false;
         if (!this.mc.thePlayer.getActivePotionEffects().isEmpty()
-                && (boolean) CheatBreaker.getInstance().getGlobalSettings().showPotionInfo.getValue()
                 && !CheatBreaker.getInstance().getModuleManager().potionStatus.isHiddenInInventory())
         {
             if (!CheatBreaker.getInstance().getModuleManager().potionStatus.isCenteredInventory())
@@ -48,7 +47,7 @@ public abstract class InventoryEffectRenderer extends GuiContainer
     {
         super.drawScreen(p_73863_1_, p_73863_2_, p_73863_3_);
 
-        if (this.field_147045_u && (boolean) CheatBreaker.getInstance().getGlobalSettings().showPotionInfo.getValue()
+        if (this.field_147045_u
                 && !CheatBreaker.getInstance().getModuleManager().potionStatus.isHiddenInInventory())
         {
             this.func_147044_g();

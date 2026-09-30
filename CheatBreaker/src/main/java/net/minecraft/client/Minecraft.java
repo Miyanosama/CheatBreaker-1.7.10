@@ -1926,6 +1926,10 @@ public class Minecraft implements IPlayerUsage
 
                 if (acceptedPress)
                 {
+                    if (screenAtEvent == null && this.currentScreen == null && this.theWorld != null
+                            && !(Keyboard.getEventKey() == 48 && PhysicalKeyboard.isKeyDown(61))) {
+                        CheatBreaker.getInstance().moduleManager.toggleModulesFromKey(Keyboard.getEventKey());
+                    }
 
                     CheatBreaker.getInstance().getEventBus().callEvent(new KeyboardEvent(Keyboard.getEventKey()));
 
@@ -1980,7 +1984,8 @@ public class Minecraft implements IPlayerUsage
 
                         if (Keyboard.getEventKey() == 48 && PhysicalKeyboard.isKeyDown(61))
                         {
-                            RenderManager.field_85095_o = !RenderManager.field_85095_o;
+                            CheatBreaker.getInstance().moduleManager.hitboxes.setState(
+                                    !CheatBreaker.getInstance().moduleManager.hitboxes.isEnabled());
                         }
 
                         if (Keyboard.getEventKey() == 25 && PhysicalKeyboard.isKeyDown(61))
@@ -3058,6 +3063,9 @@ public class Minecraft implements IPlayerUsage
     {
         if (this.currentScreen != null) return;
 
+        boolean hitboxShortcut = code == 48 && PhysicalKeyboard.isKeyDown(61);
+        if (this.theWorld != null && !hitboxShortcut) CheatBreaker.getInstance().moduleManager.toggleModulesFromKey(code);
+
         CheatBreaker.getInstance().getEventBus().callEvent(new KeyboardEvent(code));
         this.func_152348_aa(code, true, false);
 
@@ -3082,7 +3090,10 @@ public class Minecraft implements IPlayerUsage
             this.gameSettings.advancedItemTooltips = !this.gameSettings.advancedItemTooltips;
             this.gameSettings.saveOptions();
         }
-        if (debug && code == 48) RenderManager.field_85095_o = !RenderManager.field_85095_o;
+        if (debug && code == 48 && this.theWorld != null) {
+            CheatBreaker.getInstance().moduleManager.hitboxes.setState(
+                    !CheatBreaker.getInstance().moduleManager.hitboxes.isEnabled());
+        }
         if (debug && code == 25) {
             this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
             this.gameSettings.saveOptions();

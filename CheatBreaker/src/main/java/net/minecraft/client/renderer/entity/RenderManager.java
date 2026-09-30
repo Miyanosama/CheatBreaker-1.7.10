@@ -312,11 +312,14 @@ public class RenderManager
                         throw new ReportedException(CrashReport.makeCrashReport(var17, "Post-rendering entity in world"));
                     }
 
-                    if (field_85095_o && !p_147939_1_.isInvisible() && !p_147939_10_)
+                    com.cheatbreaker.client.module.type.HitboxesModule hitboxes =
+                            com.cheatbreaker.client.CheatBreaker.getInstance().moduleManager.hitboxes;
+                    if (hitboxes != null && hitboxes.isEnabled()
+                            && !p_147939_1_.isInvisible() && !p_147939_10_)
                     {
                         try
                         {
-                            this.func_85094_b(p_147939_1_, p_147939_2_, p_147939_4_, p_147939_6_, p_147939_8_, p_147939_9_);
+                            hitboxes.renderHitbox(p_147939_1_, p_147939_2_, p_147939_4_, p_147939_6_, p_147939_9_);
                         }
                         catch (Throwable var16)
                         {

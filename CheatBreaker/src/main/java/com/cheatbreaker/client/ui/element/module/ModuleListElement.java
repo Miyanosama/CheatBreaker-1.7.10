@@ -8,6 +8,7 @@ import java.util.Map;
 import com.cheatbreaker.client.CheatBreaker;
 import com.cheatbreaker.client.config.Setting;
 import com.cheatbreaker.client.module.AbstractModule;
+import com.cheatbreaker.client.module.ToggleKeybindModule;
 import com.cheatbreaker.client.module.staff.StaffModule;
 import com.cheatbreaker.client.ui.element.*;
 import com.cheatbreaker.client.ui.element.type.*;
@@ -58,6 +59,13 @@ public class ModuleListElement extends AbstractScrollableElement {
                     case DOUBLE:
                     case INTEGER:
                     case FLOAT: {
+                        if (object instanceof ToggleKeybindModule && cBSetting == ((ToggleKeybindModule)object).getToggleKeybind()) {
+                            object2.add(new KeybindElement(cBSetting, f));
+                            break;
+                        }
+                        if ((object instanceof ToggleKeybindModule
+                                || object == CheatBreaker.getInstance().moduleManager.hitboxes)
+                                && cBSetting == object.scale) break;
                         if (object.isStaffModule() && cBSetting == ((StaffModule)object).getKeybindSetting() || object.isStaffModule() && cBSetting == object.scale) break;
                         if (cBSetting.getType().equals(Setting.Type.INTEGER) && cBSetting.getLabel().toLowerCase().contains("color")) {
                             object2.add(new ColorPickerElement(cBSetting, f));
@@ -133,6 +141,16 @@ public class ModuleListElement extends AbstractScrollableElement {
         this.lIIIIllIIlIlIllIIIlIllIlI = 0;
         this.IllIIIIIIIlIlIllllIIllIII = 0.0;
         this.yOffset = 0;
+    }
+
+    public boolean handleKeyTyped(int key) {
+        if (this.module == null || this.llIlIIIlIIIIlIlllIlIIIIll) return false;
+        List<AbstractModulesGuiElement> elements = this.moduleElementListMap.get(this.module);
+        if (elements == null) return false;
+        for (AbstractModulesGuiElement element : elements) {
+            if (element instanceof KeybindElement && ((KeybindElement)element).handleKeyTyped(key)) return true;
+        }
+        return false;
     }
 
     @Override

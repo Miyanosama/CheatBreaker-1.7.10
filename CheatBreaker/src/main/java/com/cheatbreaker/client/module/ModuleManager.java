@@ -27,6 +27,8 @@ public class ModuleManager {
     public ScoreboardModule scoreboard;
     public XRayModule xray;
     public PotionStatusModule potionStatus;
+    public BlockOverlayModule blockOverlay;
+    public HitboxesModule hitboxes;
     public BossBarModule bossBar;
     public DirectionHudModule directionHud;
     public KeystrokesModule keyStrokes;
@@ -44,6 +46,8 @@ public class ModuleManager {
         modules.add(minmap = new MiniMapModule());
         modules.add(toggleSprint = new ToggleSprintModule());
         modules.add(potionStatus = new PotionStatusModule());
+        modules.add(blockOverlay = new BlockOverlayModule());
+        modules.add(hitboxes = new HitboxesModule());
         modules.add(armourStatus = new ArmourStatusModule());
         modules.add(keyStrokes = new KeystrokesModule());
         modules.add(scoreboard = new ScoreboardModule());
@@ -60,6 +64,15 @@ public class ModuleManager {
         staffModules.add(xray = new XRayModule());
         for (AbstractModule staffModule : staffModules) {
             staffModule.setStaffModuleEnabled(true);
+        }
+    }
+
+    public void toggleModulesFromKey(int key) {
+        if (key == 0) return;
+        for (AbstractModule module : modules) {
+            if (module instanceof ToggleKeybindModule) {
+                ((ToggleKeybindModule)module).toggleFromKey(key);
+            }
         }
     }
 
