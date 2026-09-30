@@ -119,7 +119,11 @@ overlay = {
 }
 source_resources = {
     'assets/minecraft/client/icons/mods/block_overlay.png',
+    *(f'assets/voxelmap/lang/{file.name}' for file in
+      (root / 'src/main/resources/assets/voxelmap/lang').glob('*.lang')),
 }
+if 'assets/voxelmap/lang/en_US.lang' not in source_resources:
+    raise SystemExit('Missing VoxelMap fallback language file')
 for name in overlay:
     if not (rebuilt / name).is_file():
         raise SystemExit(f'Missing freshly compiled class: {name}')
@@ -133,7 +137,9 @@ with ZipFile(output, 'w', ZIP_DEFLATED) as jar:
         if not file.is_file():
             continue
         name = file.relative_to(classes).as_posix()
-        if name in overlay or name in source_resources or name.upper() == 'META-INF/MANIFEST.MF' or name == 'Start.class':
+        if (name in overlay or name in source_resources or name.upper() == 'META-INF/MANIFEST.MF'
+                or name == 'Start.class'
+                or name.startswith('assets/minecraft/voxelmap/lang/') and name.endswith('.lang')):
             continue
         if name.startswith('com/cheatbreaker/client/util/input/RawMouseInput'):
             continue
