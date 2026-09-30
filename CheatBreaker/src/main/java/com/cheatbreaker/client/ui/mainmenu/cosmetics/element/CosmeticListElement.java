@@ -20,6 +20,10 @@ public class CosmeticListElement extends AbstractModulesGuiElement {
         this.cosmetic = cosmetic;
     }
 
+    public Cosmetic getCosmetic() {
+        return this.cosmetic;
+    }
+
     @Override
     public void handleDrawElement(int mouseX, int mouseY, float scaleFactor) {
         boolean bl;
@@ -28,7 +32,7 @@ public class CosmeticListElement extends AbstractModulesGuiElement {
             Gui.drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0x2F000000);
         }
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        if (this.cosmetic.getName().equals("cape")) {
+        if (this.cosmetic.isCape()) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(this.cosmetic.getLocation());
             GL11.glPushMatrix();
             GL11.glTranslatef(this.x + 20, this.y + 7, 0.0f);
@@ -55,22 +59,25 @@ public class CosmeticListElement extends AbstractModulesGuiElement {
             Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0f));
             if (this.cosmetic.isEquipped()) {
                 this.cosmetic.setEquipped(false);
-            } else if (this.cosmetic.getName().equals("cape")) {
+            } else if (this.cosmetic.isCape()) {
                 this.cosmetic.setEquipped(true);
                 for (Cosmetic cosmetic : CheatBreaker.getInstance().getCosmetics()) {
-                    if (cosmetic == this.cosmetic || !cosmetic.getName().equals("cape")) continue;
+                    if (cosmetic == this.cosmetic || !cosmetic.isCape() || !CheatBreaker.getInstance().isOwnCosmetic(cosmetic)) continue;
                     cosmetic.setEquipped(false);
                 }
                 this.cosmetic.setEquipped(true);
             } else {
                 this.cosmetic.setEquipped(true);
                 for (Cosmetic cosmetic : CheatBreaker.getInstance().getCosmetics()) {
-                    if (cosmetic == this.cosmetic || cosmetic.getName().equals("cape")) continue;
+                    if (cosmetic == this.cosmetic || cosmetic.isCape() || !CheatBreaker.getInstance().isOwnCosmetic(cosmetic)) continue;
                     cosmetic.setEquipped(false);
                 }
                 this.cosmetic.setEquipped(true);
             }
-            //CBClient.getInstance().lIllIllIlIIllIllIlIlIIlIl().updateTick();
+            CheatBreaker.getInstance().applyCosmeticsToPlayer(Minecraft.getMinecraft().thePlayer);
+            if (CheatBreaker.getInstance().getWebsocket() != null) {
+                CheatBreaker.getInstance().getWebsocket().sendClientCosmetics();
+            }
         }
     }
 }

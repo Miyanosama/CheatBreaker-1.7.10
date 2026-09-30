@@ -261,30 +261,24 @@ public class AssetsWebSocket extends WebSocketClient {
     }
 
     public void handleCosmetics(WSPacketCosmetics packetCosmetics) {
-        String string = packetCosmetics.getPlayerId();
-        CheatBreaker.getInstance().getCosmetics().removeIf(ilIlIIIlllIIIlIlllIlIllIl -> ilIlIIIlllIIIlIlllIlIllIl.getPlayerId().equals(string));
-        CheatBreaker.getInstance().getCosmetics().removeIf(ilIlIIIlllIIIlIlllIlIllIl -> ilIlIIIlllIIIlIlllIlIllIl.getPlayerId().equals(string));
-        CheatBreaker.getInstance().removeCosmeticsFromPlayer(string);
-        for (Cosmetic cosmetic : packetCosmetics.getCosmetics()) {
-            try {
-                if (cosmetic.getName().equals("cape")) {
-                    CheatBreaker.getInstance().getCosmetics().add(cosmetic);
-                } else {
-                    CheatBreaker.getInstance().getCosmetics().add(cosmetic);
+        final String playerId = packetCosmetics.getPlayerId();
+        final List<Cosmetic> received = new ArrayList<>(packetCosmetics.getCosmetics());
+        this.minecraft.func_152344_a(() -> {
+            CheatBreaker client = CheatBreaker.getInstance();
+            client.removeCosmeticsFromPlayer(playerId);
+            client.getCosmetics().addAll(received);
+            if (this.minecraft.theWorld != null) {
+                for (Object entry : this.minecraft.theWorld.playerEntities) {
+                    if (entry instanceof AbstractClientPlayer) {
+                        AbstractClientPlayer player = (AbstractClientPlayer) entry;
+                        if (CheatBreaker.samePlayerId(playerId, player.getUniqueID().toString())
+                                || playerId.equalsIgnoreCase(player.getCommandSenderName())) {
+                            client.applyCosmeticsToPlayer(player);
+                        }
+                    }
                 }
-                EntityPlayer lIllIIIIlIIlIllIIIlIlIlll2 = this.minecraft.theWorld == null ? null : this.minecraft.theWorld.getPlayerEntityByName(string);
-                if (!cosmetic.isEquipped() || !(lIllIIIIlIIlIllIIIlIlIlll2 instanceof AbstractClientPlayer)) continue;
-                if (cosmetic.getName().equals("cape")) {
-                    ((AbstractClientPlayer)lIllIIIIlIIlIllIIIlIlIlll2).setLocationOfCape(cosmetic.getLocation());
-                    //lIllIIIIlIIlIllIIIlIlIlll2.lIIIIlIIllIIlIIlIIIlIIllI(cosmetic);
-                    //continue;
-                }
-                //lIllIIIIlIIlIllIIIlIlIlll2.lIIIIIIIIIlIllIIllIlIIlIl(cosmetic);
             }
-            catch (Exception exception) {
-                exception.printStackTrace();
-            }
-        }
+        });
     }
 
     @Override
@@ -372,7 +366,13 @@ public class AssetsWebSocket extends WebSocketClient {
     }
 
     public void sendClientCosmetics() {
-        this.sentToServer(new WSPacketClientCosmetics(CheatBreaker.getInstance().getCosmetics()));
+        List<Cosmetic> owned = new ArrayList<>();
+        for (Cosmetic cosmetic : CheatBreaker.getInstance().getCosmetics()) {
+            if (CheatBreaker.getInstance().isOwnCosmetic(cosmetic)) {
+                owned.add(cosmetic);
+            }
+        }
+        this.sentToServer(new WSPacketClientCosmetics(owned));
     }
 
     public void updateClientStatus() {

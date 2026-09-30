@@ -28,6 +28,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.resources.SkinManager;
@@ -149,8 +150,9 @@ public class CheatBreaker implements SkinManager.SkinAvailableCallback {
         this.netHandler = new NetHandler();
         System.out.println("[CB] Created Net Handler");
         this.titleManager = new TitleManager();
-        cosmetics.add(new Cosmetic("Steve", "CheatBreaker Cape", 1.0f, true, "client/defaults/cb.png"));
-        cosmetics.add(new Cosmetic("Steve", "CheatBreaker Black Cape", 1.0f, false, "client/defaults/cb_black.png"));
+        String ownPlayerId = Minecraft.getMinecraft().getSession().getPlayerID();
+        cosmetics.add(new Cosmetic(ownPlayerId, "CheatBreaker Cape", 1.0f, true, "client/defaults/cb.png"));
+        cosmetics.add(new Cosmetic(ownPlayerId, "CheatBreaker Black Cape", 1.0f, false, "client/defaults/cb_black.png"));
         this.statusEnum = Status.AWAY;
         this.radioManager = new CBDashManager();
 
@@ -413,7 +415,31 @@ public class CheatBreaker implements SkinManager.SkinAvailableCallback {
     }
 
     public void removeCosmeticsFromPlayer(final String playerId) {
-        this.cosmetics.removeIf(cosmetic -> cosmetic.getPlayerId().equals(playerId));
-        this.cosmetics.removeIf(cosmetic -> cosmetic.getPlayerId().equals(playerId));
+        this.cosmetics.removeIf(cosmetic -> samePlayerId(cosmetic.getPlayerId(), playerId));
+    }
+
+    public static boolean samePlayerId(String first, String second) {
+        return first != null && second != null && first.replace("-", "").equalsIgnoreCase(second.replace("-", ""));
+    }
+
+    public boolean isOwnCosmetic(Cosmetic cosmetic) {
+        return samePlayerId(cosmetic.getPlayerId(), Minecraft.getMinecraft().getSession().getPlayerID());
+    }
+
+    public void applyCosmeticsToPlayer(AbstractClientPlayer player) {
+        if (player == null) {
+            return;
+        }
+        ResourceLocation equippedCape = null;
+        String playerId = player.getUniqueID().toString();
+        for (Cosmetic cosmetic : this.cosmetics) {
+            if (cosmetic.isEquipped() && cosmetic.isCape()
+                    && (samePlayerId(cosmetic.getPlayerId(), playerId)
+                    || cosmetic.getPlayerId().equalsIgnoreCase(player.getCommandSenderName()))) {
+                equippedCape = cosmetic.getLocation();
+                break;
+            }
+        }
+        player.setLocationCheatBreakerCape(equippedCape);
     }
 }

@@ -24,14 +24,39 @@ public class GuiCosmetics extends MainMenuBase {
     private int IllIIIIIIIlIlIllllIIllIII = 0;
 
     public GuiCosmetics() {
+        refreshCosmetics();
+    }
+
+    private void refreshCosmetics() {
+        List<Cosmetic> owned = new ArrayList<>();
         for (Cosmetic cosmetic : CheatBreaker.getInstance().getCosmetics()) {
-            this.IIIIllIlIIIllIlllIlllllIl.add(new CosmeticListElement(cosmetic, 1.0f));
+            if (CheatBreaker.getInstance().isOwnCosmetic(cosmetic)) {
+                owned.add(cosmetic);
+            }
+        }
+        boolean changed = owned.size() != this.IIIIllIlIIIllIlllIlllllIl.size();
+        if (!changed) {
+            for (int i = 0; i < owned.size(); ++i) {
+                if (owned.get(i) != this.IIIIllIlIIIllIlllIlllllIl.get(i).getCosmetic()) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (changed) {
+            this.IIIIllIlIIIllIlllIlllllIl.clear();
+            for (Cosmetic cosmetic : owned) {
+                this.IIIIllIlIIIllIlllIlllllIl.add(new CosmeticListElement(cosmetic, 1.0f));
+            }
+            this.IllIIIIIIIlIlIllllIIllIII = Math.min(this.IllIIIIIIIlIlIllllIIllIII,
+                    Math.max(0, (owned.size() - 1) / 5));
         }
     }
 
     @Override
     public void drawMenu(float f, float f2) {
         super.drawMenu(f, f2);
+        refreshCosmetics();
         if (false) {
             CheatBreaker.getInstance().playRegular16px.drawCenteredString("Unable to connect to the server.", this.getScaledWidth() / 2.0f, this.getScaledHeight() / 2.0f - (float)10, -1);
             CheatBreaker.getInstance().playRegular16px.drawCenteredString("Please try again later.", this.getScaledWidth() / 2.0f, this.getScaledHeight() / 2.0f + (float)4, -1);

@@ -46,6 +46,11 @@ borderless_classes = [file.name for file in (rebuilt / 'com/cheatbreaker/client/
 overlay = {
     'com/cheatbreaker/client/CheatBreaker.class',
     'com/cheatbreaker/client/CheatBreaker$1.class',
+    'com/cheatbreaker/client/util/cosmetic/Cosmetic.class',
+    'com/cheatbreaker/client/websocket/AssetsWebSocket.class',
+    'com/cheatbreaker/client/ui/mainmenu/cosmetics/GuiCosmetics.class',
+    'com/cheatbreaker/client/ui/mainmenu/cosmetics/element/CosmeticListElement.class',
+    'net/minecraft/client/entity/AbstractClientPlayer.class',
     *(f'com/cheatbreaker/client/util/input/{name}' for name in raw_classes),
     'com/cheatbreaker/client/util/input/PhysicalKeyboard.class',
     'com/cheatbreaker/client/util/input/PhysicalKeyboard$User32.class',

@@ -16,11 +16,18 @@ public class Cosmetic {
         this.scale = scale;
         this.equipped = equipped;
         this.location = new ResourceLocation(location);
-        this.previewLocation = new ResourceLocation("preview/" + location);
+        this.previewLocation = new ResourceLocation(this.location.getResourceDomain(),
+                "preview/" + this.location.getResourcePath());
     }
 
     public String getName() {
         return this.name;
+    }
+
+    public boolean isCape() {
+        return "cape".equalsIgnoreCase(this.name)
+                || "CheatBreaker Cape".equalsIgnoreCase(this.name)
+                || "CheatBreaker Black Cape".equalsIgnoreCase(this.name);
     }
 
     public ResourceLocation getLocation() {

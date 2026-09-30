@@ -1,5 +1,6 @@
 package net.minecraft.client.entity;
 
+import com.cheatbreaker.client.CheatBreaker;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 import java.io.File;
@@ -24,6 +25,7 @@ public abstract class AbstractClientPlayer extends EntityPlayer implements SkinM
     private ResourceLocation locationCape;
 
     private ResourceLocation locationOfCape = null;
+    private ResourceLocation locationCheatBreakerCape = null;
     private String nameClear = null;
 
 
@@ -47,11 +49,14 @@ public abstract class AbstractClientPlayer extends EntityPlayer implements SkinM
 
         CapeUtils.downloadCape(this);
         PlayerConfigurations.getPlayerConfiguration(this);
+        if (CheatBreaker.getInstance() != null) {
+            CheatBreaker.getInstance().applyCosmeticsToPlayer(this);
+        }
     }
 
     public boolean func_152122_n()
     {
-        return !Config.isShowCapes() ? false : (this.locationOfCape != null ? true : this.locationCape != null);
+        return Config.isShowCapes() && (this.locationCheatBreakerCape != null || this.locationOfCape != null || this.locationCape != null);
     }
 
     public boolean func_152123_o()
@@ -66,7 +71,8 @@ public abstract class AbstractClientPlayer extends EntityPlayer implements SkinM
 
     public ResourceLocation getLocationCape()
     {
-        return !Config.isShowCapes() ? null : (this.locationOfCape != null ? this.locationOfCape : this.locationCape);
+        return !Config.isShowCapes() ? null : (this.locationCheatBreakerCape != null ? this.locationCheatBreakerCape
+                : (this.locationOfCape != null ? this.locationOfCape : this.locationCape));
     }
 
     public static ThreadDownloadImageData getDownloadImageSkin(ResourceLocation par0ResourceLocation, String par1Str)
@@ -114,6 +120,11 @@ public abstract class AbstractClientPlayer extends EntityPlayer implements SkinM
     public void setLocationOfCape(ResourceLocation locationOfCape)
     {
         this.locationOfCape = locationOfCape;
+    }
+
+    public void setLocationCheatBreakerCape(ResourceLocation location)
+    {
+        this.locationCheatBreakerCape = location;
     }
 
     static final class SwitchType
